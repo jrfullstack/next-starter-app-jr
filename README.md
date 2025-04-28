@@ -15,8 +15,12 @@ Copia el repo
 Instala las dependencia
 
     npm install
+    // o
+    pnpm install
+    // o cualquier otro
 
 ### Características
 
-**Commitlint:** Para ordenar los commit por categorías
--puedes usar en visual studio code el generador automático o esta pagina web <https://commitlint.io/>
+**Commitlint:** Para ordenar los commit por categorías - Puedes usar en Visual Studio Code el generador automático o esta pagina web: [Commitlint Generator](https://commitlint.io/)
+
+**Change Logs Automatizados:** Para generar Release automatizadas con GitHub Actions - Para ello usamos el script `npm run release` y te saldrán las opciones. mas información sobre las SemVer en esta pagina: [Commitlint y SemVer](https://www.albertochamorro.dev/blog/conventional-commits-que-es/)
