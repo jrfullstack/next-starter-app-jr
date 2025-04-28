@@ -1,0 +1,12 @@
+echo "Running pre-push checks..."
+
+# 1: Verificar dependencias de seguridad
+echo "Checking vulnerabilities..."
+echo "Auditing code..."
+pnpm audit || exit 1
+
+# 2. Verificar que el proyecto se construye correctamente
+echo "Checking build..."
+pnpm run build || exit 1
+
+echo "All checks passed. Proceeding with push."
