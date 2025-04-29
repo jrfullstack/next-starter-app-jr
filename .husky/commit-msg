@@ -3,3 +3,4 @@ echo "Running commit-msg checks..."
 # 1. Ejecutar pruebas de estructura del mensaje
 echo "Checking commitlint..."
 npm exec -- commitlint --edit "$1"
+# pnpm exec -- commitlint --edit "$1"
