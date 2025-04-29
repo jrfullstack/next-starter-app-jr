@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Configuraciones globales para el sistema
+model AppConfig {
+  id                         Int     @id @default(1) // Config única (singleton)
+  maxActiveSessionsPerUser   Int?    @default(3) // Límite de sesiones por usuario
+  restrictMultipleUsersPerIp Boolean @default(false) // ¿Evitar múltiples usuarios por IP?
+  requireEmailVerification   Boolean @default(true) // ¿Verificación de email requerida?
+  enable2FA                  Boolean @default(false) // ¿Está activo el 2FA globalmente?
+
+  maintenanceMode       Boolean @default(false) // ¿La plataforma está en mantenimiento?
+  sessionTimeoutMinutes Int?    @default(30) // Tiempo de expiración de sesión en minutos
+
+  googleAnalyticsId String? // ID de seguimiento de Google Analytics
+  platformName      String? // Nombre de la plataforma
+  platformUrl       String? // URL principal (https://midominio.com)
+  contactEmail      String? // Correo de contacto o soporte
+
+  metaDescription String? // Descripción para SEO
+  metaKeywords    String? // Palabras clave para SEO (separadas por coma)
+  metaAuthor      String? // Autor para SEO
+
+  createdAt DateTime @default(now()) // Fecha de creación
+  updatedAt DateTime @updatedAt // Fecha de última modificación
+}
+
+// Sesiones activas por usuario
+model User {
+  id               String    @id @default(cuid()) // ID único del usuario
+  email            String    @unique // Email del usuario
+  emailVerified    DateTime? // Fecha en que se verificó el email
+  passwordHash     String // Hash de la contraseña
+  name             String? // Nombre opcional
+  image            String? // Avatar o imagen de perfil
+  twoFactorEnabled Boolean   @default(false) // ¿Tiene 2FA activado?
+  twoFactorSecret  String? // Clave secreta para 2FA
+  role             Role      @default(USER) // El Rol que hace este usuario
+  createdAt        DateTime  @default(now()) // Fecha de creación
+  updatedAt        DateTime  @updatedAt // Fecha de última modificación
+
+  sessions          Session[] // Relación con sesiones activas
+  loginAttempts     LoginAttempt[] // Relación con intentos de login
+  registrations     UserRegistrationLog[] // Registros de IP/dispositivo en registro
+  auditLogs         AuditLog[] // Acciones del usuario
+  VerificationToken VerificationToken[] // Registro de Tokens
+}
+
+// Sesiones activas por usuario
+model Session {
+  id        String    @id @default(cuid()) // ID de la sesión
+  userId    String // Relación con el usuario
+  user      User      @relation(fields: [userId], references: [id])
+  ip        String? // Dirección IP de la sesión
+  userAgent String? // Dispositivo/navegador usado
+  createdAt DateTime  @default(now()) // Fecha de creación
+  expiresAt DateTime? // Fecha de expiración de la sesión
+
+  @@index([userId])
+}
+
+// Tokens para verificación de email o recuperación
+model VerificationToken {
+  id        String   @id @default(cuid()) // ID del token
+  userId    String // Usuario al que pertenece
+  token     String   @unique // Token único
+  type      String // Tipo: "email", "password_reset", etc.
+  expiresAt DateTime // Fecha de expiración
+  createdAt DateTime @default(now()) // Fecha de creación
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+// Historial de IP/dispositivo al registrarse
+model UserRegistrationLog {
+  id        String   @id @default(cuid()) // ID del log
+  userId    String // Usuario que se registró
+  user      User     @relation(fields: [userId], references: [id])
+  ip        String // IP desde donde se registró
+  country   String? // País detectado según la IP
+  deviceId  String? // Identificador del dispositivo
+  createdAt DateTime @default(now()) // Fecha del registro
+}
+
+// Intentos de login exitosos o fallidos
+model LoginAttempt {
+  id        String   @id @default(cuid()) // ID del intento
+  userId    String? // Usuario (opcional si no existe aún)
+  user      User?    @relation(fields: [userId], references: [id])
+  email     String // Email con el que intentó entrar
+  ip        String? // IP de origen
+  success   Boolean // ¿Fue exitoso?
+  createdAt DateTime @default(now()) // Fecha del intento
+}
+
+// Registro de acciones importantes del usuario
+model AuditLog {
+  id        String   @id @default(cuid()) // ID del log
+  userId    String // Usuario que hizo la acción
+  user      User     @relation(fields: [userId], references: [id])
+  action    String // Acción realizada (ej: login, update-profile)
+  ip        String? // IP de origen
+  userAgent String? // Navegador/dispositivo usado
+  createdAt DateTime @default(now()) // Fecha del evento
+}
+
+// IPs bloqueadas manual o automáticamente
+model BlockedIp {
+  id        String   @id @default(cuid()) // ID del bloqueo
+  ip        String   @unique // IP bloqueada
+  reason    String? // Razón del bloqueo
+  blockedAt DateTime @default(now()) // Fecha de bloqueo
+}
+
+// Tipos de roles
+enum Role {
+  USER // Cliente
+  ADMIN // Admin global
+}
