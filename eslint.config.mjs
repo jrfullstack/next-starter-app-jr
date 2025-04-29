@@ -28,7 +28,17 @@ const compat = new FlatCompat({
 const eslintConfig = [
   js.configs.recommended,
   {
-    ignores: ["dist", "node_modules", ".husky", ".vscode", ".next", ".github", "public"],
+    ignores: [
+      "dist",
+      "node_modules",
+      ".husky",
+      ".vscode",
+      ".next",
+      ".github",
+      "public",
+      "prisma",
+      "src/app/generated",
+    ],
   },
   {
     files: ["**/*.{js,jsx,ts,tsx}"],
