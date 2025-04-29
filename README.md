@@ -27,10 +27,17 @@ Instala las dependencia
 
 **Husky y GitHub Actions:** Para ejecutar acciones automáticamente antes de hacer los commit o push que hacemos a GitHub.
 
+**Eslint y Prettier:** Para mostrar mensajes de errores en el editor y formateo.
+
 ## Scripts
 
     "preview": "next build && next start", // Previsualizar el Proyecto
-    "lint": "next lint", // Revisar los lint de todo el proyecto
-    "lint:fix": "next lint --fix", // Corregir los lint automáticamente
+    "lint": "eslint .", // Revisar los lint de todo el proyecto
+    "lint:fix": "eslint --fix", // Corregir los lint automáticamente
+    "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache", // revisa el formato
+    "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache", # Corrige el formateo
     "typecheck": "tsc --noEmit", // Revisar los Tipos de todo el proyecto
     "check-all": "pnpm typecheck && pnpm lint && pnpm build", // Revision general del proyecto
+    "fix-all": "npm run lint:fix && npm run format:write", // Corrige todo el proyecto
+    "release": "bumpp --commit --push --tag", // Para crear nuevas release
+    "prepare": "husky install" // Para cuando se instala el proyecto se ejecute la instalación husky y sus Actions

@@ -12,7 +12,8 @@
     "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
     "typecheck": "tsc --noEmit",
-    "check-all": "pnpm typecheck && pnpm lint && pnpm build",
+    "check-all": "npm typecheck && npm lint && npm build",
+    "fix-all": "npm run lint:fix && npm run format:write",
     "release": "bumpp --commit --push --tag",
     "prepare": "husky install"
   },
