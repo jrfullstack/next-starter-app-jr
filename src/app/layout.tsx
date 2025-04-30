@@ -2,18 +2,15 @@ import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 
 import { getAppConfig } from "@/actions/config/get-app-config";
-import { MaintenanceMode, ThemeProvider } from "@/components";
+import { ThemeProvider } from "@/components";
 import { geistMono, geistSans } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
-import "./globals.css";
+import "@/styles/globals.css";
 
 // Configuración del viewport dinámica
 export async function generateViewport() {
-  const { maintenanceMode } = await getAppConfig();
-
   return {
-    themeColor: maintenanceMode ? "#6b7280" : "#ffffff",
     colorScheme: "light dark",
     width: "device-width",
     initialScale: 1,
@@ -103,7 +100,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Componente principal del layout
 export default async function RootLayout({ children }: { readonly children: React.ReactNode }) {
-  const { defaultLocale, maintenanceMode, platformName, googleAnalyticsId } = await getAppConfig();
+  const { defaultLocale, maintenanceMode, googleAnalyticsId } = await getAppConfig();
+  // simulando un admin
+  const isAdmin = true;
 
   const isActiveGoogleAnalytics = process.env.NODE_ENV !== "development" && googleAnalyticsId;
 
@@ -111,7 +110,7 @@ export default async function RootLayout({ children }: { readonly children: Reac
     <html
       lang={defaultLocale}
       suppressHydrationWarning
-      className={cn(geistSans.variable, geistMono.variable, maintenanceMode ? "grayscale" : "")}
+      className={cn(geistSans.variable, geistMono.variable)}
     >
       <body className="bg-background text-foreground min-h-screen antialiased">
         {isActiveGoogleAnalytics && (
@@ -129,7 +128,12 @@ export default async function RootLayout({ children }: { readonly children: Reac
           enableSystem
           disableTransitionOnChange
         >
-          {maintenanceMode ? <MaintenanceMode platformName={platformName} /> : children}
+          {maintenanceMode && isAdmin && (
+            <div className="bg-yellow-200 py-2 text-center text-sm font-medium text-yellow-900">
+              ⚠️ Modo mantenimiento activo. Estás viendo el sitio como administrador.
+            </div>
+          )}
+          {children}
         </ThemeProvider>
       </body>
     </html>

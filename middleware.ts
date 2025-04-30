@@ -1,3 +1,13 @@
+/* eslint-disable eslint-comments/disable-enable-pair */
+/* eslint-disable eslint-comments/no-duplicate-disable */
+/* eslint-disable eslint-comments/disable-enable-pair */
+
+/* eslint-disable eslint-comments/disable-enable-pair */
+/* eslint-disable eslint-comments/no-duplicate-disable */
+/* eslint-disable eslint-comments/disable-enable-pair */
+/* eslint-disable sonarjs/todo-tag */
+/* eslint-disable eslint-comments/disable-enable-pair */
+
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
@@ -21,14 +31,32 @@ export async function middleware(request: NextRequest) {
     // 2. Usar getAppConfig (ya cacheado)
     const { maintenanceMode } = await getAppConfig();
 
-    // 3. Redirigir si está en mantenimiento
-    if (maintenanceMode) {
+    // TODO: agregar cuando tengas los usuarios
+    // Verificar si hay token (sesión autenticada)
+    // const token = await getToken({ req: request });
+    // const userRole = token?.role;
+
+    // Permitir acceso a admins autenticados
+    // const isAdmin = userRole === "ADMIN";\
+    // simulando un admin
+    const isAdmin = true;
+
+    if (maintenanceMode && !isAdmin) {
       const response = NextResponse.rewrite(new URL("/maintenance", request.url), {
         status: 503,
       });
-      response.headers.set("Retry-After", "3600"); // 1 hora para reintentos
+      response.headers.set("Retry-After", "3600");
       return response;
     }
+
+    // 3. Redirigir si está en mantenimiento
+    // if (maintenanceMode) {
+    //   const response = NextResponse.rewrite(new URL("/maintenance", request.url), {
+    //     status: 503,
+    //   });
+    //   response.headers.set("Retry-After", "3600"); // 1 hora para reintentos
+    //   return response;
+    // }
 
     return NextResponse.next();
   } catch (error) {

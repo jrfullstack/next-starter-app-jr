@@ -64,10 +64,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function MaintenanceModePage() {
-  const { platformName } = await getAppConfig();
-  return (
-    <div>
-      <MaintenanceMode platformName={platformName} />
-    </div>
-  );
+  const { contactEmail } = await getAppConfig();
+
+  return <MaintenanceMode contactEmail={contactEmail} />;
 }
