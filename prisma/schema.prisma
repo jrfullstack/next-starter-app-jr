@@ -13,27 +13,27 @@ model AppConfig {
   id Int @id @default(1) @map("_id") // Config única (singleton)
 
   // General
-  contactEmail      String? // Correo de contacto o soporte
-  logoUrl           String? @db.VarChar(255)
-  maintenanceMode   Boolean @default(false) // ¿La plataforma está en mantenimiento?
-  googleAnalyticsId String? // ID de seguimiento de Google Analytics
+  contactEmail              String? // Correo de contacto o soporte
+  logoUrl                   String? @db.VarChar(255)
+  isMaintenanceMode         Boolean @default(false) // ¿La plataforma está en mantenimiento?
+  googleAnalyticsTrackingId String? // ID de seguimiento de Google Analytics
 
   // Usuario
-  allowUserSignUps           Boolean @default(true) // Permitir registros
-  maxActiveSessionsPerUser   Int?    @default(3) // Límite de sesiones por usuario
-  restrictMultipleUsersPerIp Boolean @default(false) // ¿Evitar múltiples usuarios por IP?
-  requireEmailVerification   Boolean @default(true) // ¿Verificación de email requerida?
-  enable2FA                  Boolean @default(false) // ¿Está activo el 2FA globalmente?
-  sessionTimeoutMinutes      Int?    @default(30) // Tiempo de expiración de sesión en minutos
+  isUserSignUpEnabled          Boolean @default(true) // Permitir registros
+  maxActiveSessionsPerUser     Int?    @default(3) // Límite de sesiones por usuario
+  isSingleUserPerIpEnforced    Boolean @default(false) // ¿Evitar múltiples usuarios por IP?
+  isEmailVerificationRequired  Boolean @default(true) // ¿Verificación de email requerida?
+  isGlobalTwoFactorAuthEnabled Boolean @default(false) // ¿Está activo el 2FA globalmente?
+  sessionTimeoutLimitMinutes   Int?    @default(30) // Tiempo de expiración de sesión en minutos
 
   // SEO Global
-  platformName        String? // Nombre de la plataforma
-  platformUrl         String? // URL principal (https://midominio.com)
-  platformDescription String? @db.VarChar(255)
-  faviconUrl          String? @db.VarChar(255)
-  defaultLocale       String  @default("es")
-  globalNoIndex       Boolean @default(false)
-  globalKeywords      String? @db.VarChar(255)
+  siteDisplayName      String? // Nombre de la plataforma
+  siteUrl              String? // URL principal (https://midominio.com)
+  siteDescription      String? @db.VarChar(255)
+  faviconUrl           String? @db.VarChar(255)
+  defaultLocale        String  @default("es")
+  isSiteNoIndexEnabled Boolean @default(false)
+  seoDefaultKeywords   String? @db.VarChar(255)
   // También puedes usarlo para evitar que se genere el sitemap.xml completo o devolver un archivo robots.txt que bloquee todo (User-agent: * Disallow: /).
 
   createdAt DateTime @default(now()) // Fecha de creación
@@ -42,17 +42,17 @@ model AppConfig {
 
 // Sesiones activas por usuario
 model User {
-  id               String    @id @default(cuid()) // ID único del usuario
-  email            String    @unique // Email del usuario
-  emailVerified    DateTime? // Fecha en que se verificó el email
-  passwordHash     String // Hash de la contraseña
-  name             String? // Nombre opcional
-  image            String?   @db.VarChar(255) // Avatar o imagen de perfil
-  twoFactorEnabled Boolean   @default(false) // ¿Tiene 2FA activado?
-  twoFactorSecret  String? // Clave secreta para 2FA
-  role             Role      @default(USER) // El Rol que hace este usuario
-  createdAt        DateTime  @default(now()) // Fecha de creación
-  updatedAt        DateTime  @updatedAt // Fecha de última modificación
+  id                 String    @id @default(cuid()) // ID único del usuario
+  email              String    @unique // Email del usuario
+  emailVerified      DateTime? // Fecha en que se verificó el email
+  hashedPassword     String // Hash de la contraseña
+  name               String? // Nombre opcional
+  profileImageUrl    String?   @db.VarChar(255) // Avatar o imagen de perfil
+  isTwoFactorEnabled Boolean   @default(false) // ¿Tiene 2FA activado?
+  twoFactorSecretKey String? // Clave secreta para 2FA
+  role               Role      @default(USER) // El Rol que hace este usuario
+  createdAt          DateTime  @default(now()) // Fecha de creación
+  updatedAt          DateTime  @updatedAt // Fecha de última modificación
 
   sessions          UserSession[] // Relación con sesiones activas
   loginAttempts     UserLoginAttempt[] // Relación con intentos de login
@@ -67,27 +67,27 @@ model User {
 
 // Sesiones activas por usuario
 model UserSession {
-  id        String    @id @default(cuid()) // ID de la sesión
-  userId    String // Relación con el usuario
-  user      User      @relation(fields: [userId], references: [id])
-  ip        String? // Dirección IP de la sesión
-  userAgent String? // Dispositivo/navegador usado
-  createdAt DateTime  @default(now()) // Fecha de creación
-  expiresAt DateTime? // Fecha de expiración de la sesión
+  id               String    @id @default(cuid()) // ID de la sesión
+  userId           String // Relación con el usuario
+  user             User      @relation(fields: [userId], references: [id])
+  ipAddress        String? // Dirección IP de la sesión
+  userAgentString  String? // Dispositivo/navegador usado
+  createdAt        DateTime  @default(now()) // Fecha de creación
+  sessionExpiresAt DateTime? // Fecha de expiración de la sesión
 
-  @@index([expiresAt]) // Índice para consultar sesiones expiradas rápidamente
-  @@index([ip]) // Índice para buscar rápidamente sesiones por IP
+  @@index([sessionExpiresAt]) // Índice para consultar sesiones expiradas rápidamente
+  @@index([ipAddress]) // Índice para buscar rápidamente sesiones por IP
 }
 
 // Tokens para verificación de email o recuperación
 model UserVerificationToken {
-  id        String    @id @default(cuid()) // ID del token
-  userId    String // Usuario al que pertenece
-  token     String    @unique // Token único
-  type      TokenType // Tipo: "email", "password_reset", etc.
-  expiresAt DateTime // Fecha de expiración
-  createdAt DateTime  @default(now()) // Fecha de creación
-  updatedAt DateTime  @updatedAt // Fecha de última modificación
+  id                String    @id @default(cuid()) // ID del token
+  userId            String // Usuario al que pertenece
+  verificationToken String    @unique // Token único
+  tokenType         TokenType // Tipo: "email", "password_reset", etc.
+  expiresAt         DateTime // Fecha de expiración
+  createdAt         DateTime  @default(now()) // Fecha de creación
+  updatedAt         DateTime  @updatedAt // Fecha de última modificación
 
   user User @relation(fields: [userId], references: [id])
 
@@ -97,40 +97,40 @@ model UserVerificationToken {
 
 // Historial de IP/dispositivo al registrarse
 model UserRegistrationLog {
-  id        String   @id @default(cuid()) // ID del log
-  userId    String // Usuario que se registró
-  user      User     @relation(fields: [userId], references: [id])
-  ip        String // IP desde donde se registró
-  country   String? // País detectado según la IP
-  deviceId  String? // Identificador del dispositivo
-  createdAt DateTime @default(now()) // Fecha del registro
+  id          String   @id @default(cuid()) // ID del log
+  userId      String // Usuario que se registró
+  user        User     @relation(fields: [userId], references: [id])
+  ipAddress   String // IP desde donde se registró
+  countryName String? // País detectado según la IP // o countryCode 
+  deviceId    String? // Identificador del dispositivo
+  createdAt   DateTime @default(now()) // Fecha del registro
 }
 
 // Intentos de login exitosos o fallidos
 model UserLoginAttempt {
-  id        String   @id @default(cuid()) // ID del intento
-  userId    String? // Usuario (opcional si no existe aún)
-  user      User?    @relation(fields: [userId], references: [id])
-  email     String // Email con el que intentó entrar
-  ip        String? // IP de origen
-  success   Boolean // ¿Fue exitoso?
-  createdAt DateTime @default(now()) // Fecha del intento
+  id                String   @id @default(cuid()) // ID del intento
+  userId            String? // Usuario (opcional si no existe aún)
+  user              User?    @relation(fields: [userId], references: [id])
+  email             String // Email con el que intentó entrar
+  ipAddress         String? // IP de origen
+  isSuccessfulLogin Boolean // ¿Fue exitoso?
+  createdAt         DateTime @default(now()) // Fecha del intento
 
-  @@index([ip])
+  @@index([ipAddress])
   @@map("UserLoginAttempt")
 }
 
 // Registro de acciones importantes del usuario
 model UserAuditLog {
-  id        String   @id @default(cuid()) // ID del log
-  userId    String // Usuario que hizo la acción
-  user      User     @relation(fields: [userId], references: [id])
-  action    String // Acción realizada (ej: login, update-profile)
-  ip        String? // IP de origen
-  meta      Json? // guardar datos adicionales como payloads, IDs afectados, etc.
-  userAgent String? // Navegador/dispositivo usado
-  createdAt DateTime @default(now()) // Fecha del evento
-  updatedAt DateTime @updatedAt // Fecha de última modificación
+  id              String   @id @default(cuid()) // ID del log
+  userId          String // Usuario que hizo la acción
+  user            User     @relation(fields: [userId], references: [id])
+  auditAction     String // Acción realizada (ej: login, update-profile)
+  ipAddress       String? // IP de origen
+  metadata        Json? // guardar datos adicionales como payloads, IDs afectados, etc.
+  userAgentString String? // Navegador/dispositivo usado
+  createdAt       DateTime @default(now()) // Fecha del evento
+  updatedAt       DateTime @updatedAt // Fecha de última modificación
 
   @@index([createdAt])
   @@map("UserAuditLog")
@@ -138,16 +138,16 @@ model UserAuditLog {
 
 // IPs bloqueadas manual o automáticamente
 model UserBlockedIp {
-  id             String    @id @default(cuid()) // ID único para el bloqueo
-  ip             String    @unique // IP bloqueada
-  reason         String? // Razón del bloqueo (ej: "intentos fallidos", "actividad sospechosa")
-  failedAttempts Int       @default(0) // Número de intentos fallidos antes de bloquear
-  blockedAt      DateTime  @default(now()) // Fecha de bloqueo
-  userId         String? // Relación opcional con el usuario
-  User           User?     @relation(fields: [userId], references: [id])
-  expiresAt      DateTime? //manejar bloqueos temporales.
+  id                  String    @id @default(cuid()) // ID único para el bloqueo
+  ipAddress           String    @unique // IP bloqueada
+  blockReason         String? // Razón del bloqueo (ej: "intentos fallidos", "actividad sospechosa")
+  failedLoginAttempts Int       @default(0) // Número de intentos fallidos antes de bloquear
+  userId              String? // Relación opcional con el usuario
+  User                User?     @relation(fields: [userId], references: [id])
+  blockStartAt        DateTime  @default(now()) // Fecha de bloqueo
+  blockExpiresAt      DateTime? //manejar bloqueos temporales.
 
-  @@index([blockedAt])
+  @@index([blockStartAt])
   @@map("UserBlockedIp")
 }
 
@@ -162,14 +162,14 @@ model UserBlockedIp {
 
 // para llevar un historial permanente de las veces que sea bloqueado un usuario
 model UserBlockedIpLog {
-  id             String    @id @default(cuid())
-  ip             String
-  reason         String?
-  failedAttempts Int
-  blockedAt      DateTime
-  unblockedAt    DateTime? // Si se eliminó el bloqueo
-  userId         String?
-  user           User?     @relation(fields: [userId], references: [id])
+  id                  String    @id @default(cuid())
+  ipAddress           String
+  blockReason         String?
+  failedLoginAttempts Int
+  blockStartAt        DateTime
+  blockEndAt          DateTime? // Si se eliminó el bloqueo
+  userId              String?
+  user                User?     @relation(fields: [userId], references: [id])
 }
 
 enum Role {

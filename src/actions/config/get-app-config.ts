@@ -13,9 +13,9 @@ export const getAppConfig = cache(
     try {
       const config = await prisma.appConfig.findUnique({ where: { id: 1 } });
 
-      // Procesamiento seguro de globalKeywords
-      const processGlobalKeywords = (keywords: string | null): string[] => {
-        if (!keywords) return defaultConfig.globalKeywords;
+      // Procesamiento seguro de seoDefaultKeywords
+      const processSeoDefaultKeywords = (keywords: string | null): string[] => {
+        if (!keywords) return defaultConfig.seoDefaultKeywords;
         if (Array.isArray(keywords)) return keywords; // Por si acaso ya es array
         return keywords
           .split(",")
@@ -28,11 +28,12 @@ export const getAppConfig = cache(
       return {
         ...defaultConfig,
         ...config,
-        platformName: config?.platformName ?? defaultConfig.platformName,
-        platformDescription: config?.platformDescription ?? defaultConfig.platformDescription,
-        platformUrl: config?.platformUrl ?? defaultConfig.platformUrl,
-        googleAnalyticsId: config?.googleAnalyticsId ?? defaultConfig.googleAnalyticsId,
-        globalKeywords: processGlobalKeywords(config?.globalKeywords ?? null),
+        siteDisplayName: config?.siteDisplayName ?? defaultConfig.siteDisplayName,
+        siteDescription: config?.siteDescription ?? defaultConfig.siteDescription,
+        siteUrl: config?.siteUrl ?? defaultConfig.siteUrl,
+        googleAnalyticsTrackingId:
+          config?.googleAnalyticsTrackingId ?? defaultConfig.googleAnalyticsTrackingId,
+        seoDefaultKeywords: processSeoDefaultKeywords(config?.seoDefaultKeywords ?? null),
         updatedAt: config?.updatedAt ?? defaultConfig.updatedAt,
         createdAt: config?.createdAt ?? defaultConfig.createdAt,
       };

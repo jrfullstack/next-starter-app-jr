@@ -7,10 +7,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const config = await getAppConfig();
 
   const title = "En Modo Mantenimiento";
-  const siteName = config.platformName;
+  const siteName = config.siteDisplayName;
   const description = "Estamos realizando tareas de mantenimiento. Por favor, vuelve pronto.";
   const locale = config.defaultLocale;
-  const baseUrl = config.platformUrl;
+  const baseUrl = config.siteUrl;
 
   // Metadatos comunes
   const commonMetadata = {
@@ -22,7 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 
   // Si está en modo no-index
-  if (config.globalNoIndex) {
+  if (config.isSiteNoIndexEnabled) {
     return {
       ...commonMetadata,
       robots: { index: false, follow: false },

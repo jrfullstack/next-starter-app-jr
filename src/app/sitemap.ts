@@ -16,7 +16,7 @@ import { getAppConfig } from "@/actions/config/get-app-config";
  * Incluye rutas estáticas y dinámicas públicas, excluyendo privadas.
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const { platformUrl } = await getAppConfig();
+  const { siteUrl } = await getAppConfig();
 
   // Define rutas estáticas comunes del sitio
   const staticPaths = ["/", "/contact", "/terms", "/privacy", "/about"];
@@ -26,7 +26,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Agrega rutas estáticas al sitemap
   for (const path of staticPaths) {
     urls.push({
-      url: `${platformUrl}${path}`,
+      url: `${siteUrl}${path}`,
       lastModified: new Date(), // si actualizas una de las pagina estáticas esto se pondrá en la fecha del deploy
     });
   }
@@ -34,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Agrega rutas dinámicas para media
   /* for (const slug of mediaSlugs) {
     urls.push({
-      url: `${platformUrl}/media/${slug}`,
+      url: `${siteUrl}/media/${slug}`,
       lastModified: media.updatedAt,
     });
   } */
@@ -42,7 +42,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Agrega rutas dinámicas para videos
   /* for (const slug of videoSlugs) {
     urls.push({
-      url: `${platformUrl}/videos/${slug}`,
+      url: `${siteUrl}/videos/${slug}`,
       lastModified: videos.updatedAt,
     });
   } */

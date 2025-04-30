@@ -8,11 +8,11 @@ import { getAppConfig } from "@/actions/config/get-app-config";
  * Excluye rutas privadas del índice de los motores de búsqueda.
  */
 export default async function robots(): Promise<MetadataRoute.Robots> {
-  const { maintenanceMode, globalNoIndex, platformUrl } = await getAppConfig();
+  const { isMaintenanceMode, isSiteNoIndexEnabled, siteUrl } = await getAppConfig();
 
   const rules: MetadataRoute.Robots["rules"] = [];
 
-  if (maintenanceMode || globalNoIndex) {
+  if (isMaintenanceMode || isSiteNoIndexEnabled) {
     // Si está activado el mantenimiento o noIndex, se bloquea completamente
     rules.push({
       userAgent: "*",
@@ -29,7 +29,7 @@ export default async function robots(): Promise<MetadataRoute.Robots> {
 
   return {
     rules,
-    sitemap: `${platformUrl}/sitemap.xml`,
-    host: platformUrl,
+    sitemap: `${siteUrl}/sitemap.xml`,
+    host: siteUrl,
   };
 }

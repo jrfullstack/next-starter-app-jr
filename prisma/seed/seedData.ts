@@ -2,24 +2,24 @@ interface SeedAppConfig {
   id?: string;
   contactEmail?: String;
   logoUrl?: String;
-  maintenanceMode?: Boolean;
-  googleAnalyticsId?: String;
+  isMaintenanceMode?: Boolean;
+  googleAnalyticsTrackingId?: String;
 
-  allowUserSignUps?: Boolean;
+  isUserSignUpEnabled?: Boolean;
   maxActiveSessionsPerUser?: Number;
-  restrictMultipleUsersPerIp?: Boolean;
-  requireEmailVerification?: Boolean;
-  enable2FA?: Boolean;
-  sessionTimeoutMinutes?: Number;
+  isSingleUserPerIpEnforced?: Boolean;
+  isEmailVerificationRequired?: Boolean;
+  isGlobalTwoFactorAuthEnabled?: Boolean;
+  sessionTimeoutLimitMinutes?: Number;
 
   // SEO Global
-  platformName?: String; // Nombre de la plataforma
-  platformUrl?: String; // URL principal (https://midominio.com)
-  platformDescription?: String;
+  siteDisplayName?: String; // Nombre de la plataforma
+  siteUrl?: String; // URL principal (https://midominio.com)
+  siteDescription?: String;
 
   defaultLocale?: String;
-  globalNoIndex?: Boolean;
-  globalKeywords?: String;
+  isSiteNoIndexEnabled?: Boolean;
+  seoDefaultKeywords?: String;
 }
 
 interface SeedData {
@@ -33,23 +33,23 @@ export const initialData: SeedData = {
       id: "1",
       contactEmail: "soporte@midominio.com",
       logoUrl: "/images/logo.png",
-      maintenanceMode: false,
-      googleAnalyticsId: undefined,
+      isMaintenanceMode: false,
+      googleAnalyticsTrackingId: undefined,
 
-      allowUserSignUps: true,
+      isUserSignUpEnabled: true,
       maxActiveSessionsPerUser: 3,
-      restrictMultipleUsersPerIp: false,
-      requireEmailVerification: true,
-      enable2FA: false,
-      sessionTimeoutMinutes: 30,
+      isSingleUserPerIpEnforced: false,
+      isEmailVerificationRequired: true,
+      isGlobalTwoFactorAuthEnabled: false,
+      sessionTimeoutLimitMinutes: 30,
 
-      platformName: "Mi Aplicación",
-      platformUrl: "https://midominio.com",
-      platformDescription: "La mejor plataforma para gestionar tu negocio",
+      siteDisplayName: "Mi Aplicación",
+      siteUrl: "https://midominio.com",
+      siteDescription: "La mejor plataforma para gestionar tu negocio",
 
       defaultLocale: "es",
-      globalNoIndex: false,
-      globalKeywords: "negocio, gestión, plataforma, SaaS",
+      isSiteNoIndexEnabled: false,
+      seoDefaultKeywords: "negocio, gestión, plataforma, SaaS",
     },
   ],
 };

@@ -5,25 +5,25 @@ export interface AppConfig {
   // General
   readonly contactEmail: string | null;
   readonly logoUrl: string | null;
-  readonly maintenanceMode: boolean;
-  readonly googleAnalyticsId: string | null;
+  readonly isMaintenanceMode: boolean;
+  readonly googleAnalyticsTrackingId: string | null;
 
   // Usuario
-  readonly allowUserSignUps: boolean;
+  readonly isUserSignUpEnabled: boolean;
   readonly maxActiveSessionsPerUser: number | null;
-  readonly restrictMultipleUsersPerIp: boolean;
-  readonly requireEmailVerification: boolean;
-  readonly enable2FA: boolean;
-  readonly sessionTimeoutMinutes: number | null;
+  readonly isSingleUserPerIpEnforced: boolean;
+  readonly isEmailVerificationRequired: boolean;
+  readonly isGlobalTwoFactorAuthEnabled: boolean;
+  readonly sessionTimeoutLimitMinutes: number | null;
 
   // SEO Global
-  readonly platformName: string | null;
-  readonly platformUrl: string | null;
-  readonly platformDescription: string | null;
-  readonly defaultLocale: string;
+  readonly siteDisplayName: string | null;
+  readonly siteDescription: string | null;
+  readonly siteUrl: string | null;
   readonly faviconUrl: string | null;
-  readonly globalNoIndex: boolean;
-  readonly globalKeywords: string | null;
+  readonly defaultLocale: string;
+  readonly isSiteNoIndexEnabled: boolean;
+  readonly seoDefaultKeywords: string | null;
 
   // Fechas
   readonly createdAt: Date;
@@ -36,13 +36,17 @@ export type PartialAppConfig = Partial<AppConfig>;
 export interface ResolvedAppConfig
   extends Omit<
     AppConfig,
-    "platformName" | "platformDescription" | "platformUrl" | "googleAnalyticsId" | "globalKeywords"
+    | "siteDisplayName"
+    | "siteUrl"
+    | "siteDescription"
+    | "googleAnalyticsTrackingId"
+    | "seoDefaultKeywords"
   > {
   // Propiedades que nunca serán null
-  readonly platformName: string;
-  readonly platformDescription: string;
-  readonly platformUrl: string;
-  readonly googleAnalyticsId: string;
+  readonly siteDisplayName: string;
+  readonly siteUrl: string;
+  readonly siteDescription: string;
+  readonly googleAnalyticsTrackingId: string;
   // eslint-disable-next-line functional/prefer-readonly-type
-  readonly globalKeywords: string[];
+  readonly seoDefaultKeywords: string[];
 }

@@ -24,12 +24,12 @@ export async function generateViewport() {
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getAppConfig();
   const isActiveGoogleAnalytics =
-    process.env.NODE_ENV !== "development" && config.googleAnalyticsId;
+    process.env.NODE_ENV !== "development" && config.googleAnalyticsTrackingId;
 
   // Valores base
-  const title = config.platformName;
-  const description = config.platformDescription;
-  const baseUrl = config.platformUrl;
+  const title = config.siteDisplayName;
+  const description = config.siteDescription;
+  const baseUrl = config.siteUrl;
   const locale = config.defaultLocale;
 
   // Metadatos comunes
@@ -40,12 +40,12 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     description,
     metadataBase: new URL(baseUrl),
-    keywords: config.globalKeywords,
+    keywords: config.seoDefaultKeywords,
     applicationName: title,
   };
 
   // Si está en modo no-index
-  if (config.globalNoIndex) {
+  if (config.isSiteNoIndexEnabled) {
     return {
       ...commonMetadata,
       robots: { index: false, follow: false },
@@ -67,7 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
     // manifest: "/favicon/site.webmanifest", // investigar esto
     verification: {
-      ...(isActiveGoogleAnalytics ? { google: config.googleAnalyticsId } : {}),
+      ...(isActiveGoogleAnalytics ? { google: config.googleAnalyticsTrackingId } : {}),
     },
     openGraph: {
       type: "website",
@@ -100,11 +100,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Componente principal del layout
 export default async function RootLayout({ children }: { readonly children: React.ReactNode }) {
-  const { defaultLocale, maintenanceMode, googleAnalyticsId } = await getAppConfig();
+  const {
+    defaultLocale,
+    isMaintenanceMode: maintenanceMode,
+    googleAnalyticsTrackingId,
+  } = await getAppConfig();
   // simulando un admin
   const isAdmin = true;
 
-  const isActiveGoogleAnalytics = process.env.NODE_ENV !== "development" && googleAnalyticsId;
+  const isActiveGoogleAnalytics =
+    process.env.NODE_ENV !== "development" && googleAnalyticsTrackingId;
 
   return (
     <html
@@ -116,7 +121,7 @@ export default async function RootLayout({ children }: { readonly children: Reac
         {isActiveGoogleAnalytics && (
           <Script
             async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${googleAnalyticsId}`}
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${googleAnalyticsTrackingId}`}
             crossOrigin="anonymous"
             strategy="afterInteractive"
           />

@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // 2. Usar getAppConfig (ya cacheado)
-    const { maintenanceMode } = await getAppConfig();
+    const { isMaintenanceMode: maintenanceMode } = await getAppConfig();
 
     // TODO: agregar cuando tengas los usuarios
     // Verificar si hay token (sesión autenticada)
