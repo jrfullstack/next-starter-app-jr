@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../src/app/generated/prisma"
@@ -16,23 +10,31 @@ datasource db {
 
 // Configuraciones globales para el sistema
 model AppConfig {
-  id                         Int     @id @default(1) // Config única (singleton)
+  id Int @id @default(1) @map("_id") // Config única (singleton)
+
+  // General
+  contactEmail      String? // Correo de contacto o soporte
+  logoUrl           String? @db.VarChar(255)
+  maintenanceMode   Boolean @default(false) // ¿La plataforma está en mantenimiento?
+  googleAnalyticsId String? // ID de seguimiento de Google Analytics
+
+  // Usuario
+  allowUserSignUps           Boolean @default(true) // Permitir registros
   maxActiveSessionsPerUser   Int?    @default(3) // Límite de sesiones por usuario
   restrictMultipleUsersPerIp Boolean @default(false) // ¿Evitar múltiples usuarios por IP?
   requireEmailVerification   Boolean @default(true) // ¿Verificación de email requerida?
   enable2FA                  Boolean @default(false) // ¿Está activo el 2FA globalmente?
+  sessionTimeoutMinutes      Int?    @default(30) // Tiempo de expiración de sesión en minutos
 
-  maintenanceMode       Boolean @default(false) // ¿La plataforma está en mantenimiento?
-  sessionTimeoutMinutes Int?    @default(30) // Tiempo de expiración de sesión en minutos
-
-  googleAnalyticsId String? // ID de seguimiento de Google Analytics
-  platformName      String? // Nombre de la plataforma
-  platformUrl       String? // URL principal (https://midominio.com)
-  contactEmail      String? // Correo de contacto o soporte
-
-  metaDescription String? // Descripción para SEO
-  metaKeywords    String? // Palabras clave para SEO (separadas por coma)
-  metaAuthor      String? // Autor para SEO
+  // SEO Global
+  platformName        String? // Nombre de la plataforma
+  platformUrl         String? // URL principal (https://midominio.com)
+  platformDescription String? @db.VarChar(255)
+  faviconUrl          String? @db.VarChar(255)
+  defaultLocale       String  @default("es")
+  globalNoIndex       Boolean @default(false)
+  globalKeywords      String? @db.VarChar(255)
+  // También puedes usarlo para evitar que se genere el sitemap.xml completo o devolver un archivo robots.txt que bloquee todo (User-agent: * Disallow: /).
 
   createdAt DateTime @default(now()) // Fecha de creación
   updatedAt DateTime @updatedAt // Fecha de última modificación
@@ -45,22 +47,26 @@ model User {
   emailVerified    DateTime? // Fecha en que se verificó el email
   passwordHash     String // Hash de la contraseña
   name             String? // Nombre opcional
-  image            String? // Avatar o imagen de perfil
+  image            String?   @db.VarChar(255) // Avatar o imagen de perfil
   twoFactorEnabled Boolean   @default(false) // ¿Tiene 2FA activado?
   twoFactorSecret  String? // Clave secreta para 2FA
   role             Role      @default(USER) // El Rol que hace este usuario
   createdAt        DateTime  @default(now()) // Fecha de creación
   updatedAt        DateTime  @updatedAt // Fecha de última modificación
 
-  sessions          Session[] // Relación con sesiones activas
-  loginAttempts     LoginAttempt[] // Relación con intentos de login
+  sessions          UserSession[] // Relación con sesiones activas
+  loginAttempts     UserLoginAttempt[] // Relación con intentos de login
   registrations     UserRegistrationLog[] // Registros de IP/dispositivo en registro
-  auditLogs         AuditLog[] // Acciones del usuario
-  VerificationToken VerificationToken[] // Registro de Tokens
+  auditLogs         UserAuditLog[] // Acciones del usuario
+  verificationToken UserVerificationToken[] // Registro de Tokens
+  blockedIp         UserBlockedIp[]
+  blockedIpLog      UserBlockedIpLog[]
+
+  @@index([emailVerified]) // índices en campos frecuentemente consultados:
 }
 
 // Sesiones activas por usuario
-model Session {
+model UserSession {
   id        String    @id @default(cuid()) // ID de la sesión
   userId    String // Relación con el usuario
   user      User      @relation(fields: [userId], references: [id])
@@ -69,19 +75,24 @@ model Session {
   createdAt DateTime  @default(now()) // Fecha de creación
   expiresAt DateTime? // Fecha de expiración de la sesión
 
-  @@index([userId])
+  @@index([expiresAt]) // Índice para consultar sesiones expiradas rápidamente
+  @@index([ip]) // Índice para buscar rápidamente sesiones por IP
 }
 
 // Tokens para verificación de email o recuperación
-model VerificationToken {
-  id        String   @id @default(cuid()) // ID del token
+model UserVerificationToken {
+  id        String    @id @default(cuid()) // ID del token
   userId    String // Usuario al que pertenece
-  token     String   @unique // Token único
-  type      String // Tipo: "email", "password_reset", etc.
+  token     String    @unique // Token único
+  type      TokenType // Tipo: "email", "password_reset", etc.
   expiresAt DateTime // Fecha de expiración
-  createdAt DateTime @default(now()) // Fecha de creación
+  createdAt DateTime  @default(now()) // Fecha de creación
+  updatedAt DateTime  @updatedAt // Fecha de última modificación
 
   user User @relation(fields: [userId], references: [id])
+
+  @@index([expiresAt])
+  @@map("UserVerificationToken")
 }
 
 // Historial de IP/dispositivo al registrarse
@@ -96,7 +107,7 @@ model UserRegistrationLog {
 }
 
 // Intentos de login exitosos o fallidos
-model LoginAttempt {
+model UserLoginAttempt {
   id        String   @id @default(cuid()) // ID del intento
   userId    String? // Usuario (opcional si no existe aún)
   user      User?    @relation(fields: [userId], references: [id])
@@ -104,29 +115,85 @@ model LoginAttempt {
   ip        String? // IP de origen
   success   Boolean // ¿Fue exitoso?
   createdAt DateTime @default(now()) // Fecha del intento
+
+  @@index([ip])
+  @@map("UserLoginAttempt")
 }
 
 // Registro de acciones importantes del usuario
-model AuditLog {
+model UserAuditLog {
   id        String   @id @default(cuid()) // ID del log
   userId    String // Usuario que hizo la acción
   user      User     @relation(fields: [userId], references: [id])
   action    String // Acción realizada (ej: login, update-profile)
   ip        String? // IP de origen
+  meta      Json? // guardar datos adicionales como payloads, IDs afectados, etc.
   userAgent String? // Navegador/dispositivo usado
   createdAt DateTime @default(now()) // Fecha del evento
+  updatedAt DateTime @updatedAt // Fecha de última modificación
+
+  @@index([createdAt])
+  @@map("UserAuditLog")
 }
 
 // IPs bloqueadas manual o automáticamente
-model BlockedIp {
-  id        String   @id @default(cuid()) // ID del bloqueo
-  ip        String   @unique // IP bloqueada
-  reason    String? // Razón del bloqueo
-  blockedAt DateTime @default(now()) // Fecha de bloqueo
+model UserBlockedIp {
+  id             String    @id @default(cuid()) // ID único para el bloqueo
+  ip             String    @unique // IP bloqueada
+  reason         String? // Razón del bloqueo (ej: "intentos fallidos", "actividad sospechosa")
+  failedAttempts Int       @default(0) // Número de intentos fallidos antes de bloquear
+  blockedAt      DateTime  @default(now()) // Fecha de bloqueo
+  userId         String? // Relación opcional con el usuario
+  User           User?     @relation(fields: [userId], references: [id])
+  expiresAt      DateTime? //manejar bloqueos temporales.
+
+  @@index([blockedAt])
+  @@map("UserBlockedIp")
 }
 
-// Tipos de roles
+// 🚀 Propuesta de flujo (automatizable):
+// En cada intento de login fallido, se graba un UserLoginAttempt.
+// Se cuenta cuántos intentos fallidos tiene esa IP en los últimos X minutos.
+// Si supera el umbral, se crea (o actualiza) un UserBlockedIp.
+// En cada login o request, se revisa si la IP está en UserBlockedIp (y si el bloqueo no ha expirado).
+// Opcional: usar expiresAt para manejar bloqueos temporales.
+// Si piensas usar limpieza automática de bloqueos expirados, considera una tarea cron cada X horas que elimine los expirados
+// DELETE FROM "UserBlockedIp" WHERE "expiresAt" IS NOT NULL AND "expiresAt" < NOW();
+
+// para llevar un historial permanente de las veces que sea bloqueado un usuario
+model UserBlockedIpLog {
+  id             String    @id @default(cuid())
+  ip             String
+  reason         String?
+  failedAttempts Int
+  blockedAt      DateTime
+  unblockedAt    DateTime? // Si se eliminó el bloqueo
+  userId         String?
+  user           User?     @relation(fields: [userId], references: [id])
+}
+
 enum Role {
-  USER // Cliente
-  ADMIN // Admin global
+  USER
+  ADMIN
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR_AUTH
+  ACCOUNT_DELETION
+}
+
+enum SeoType {
+  PAGE
+  ARTICLE
+  VIDEO
+  AUDIO
+  IMAGE
+  PRODUCT
+  WEBSITE
+  GENRE
+  ARTIST
+  TAG
+  OTHER
 }
