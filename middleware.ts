@@ -1,72 +1,58 @@
-/* eslint-disable eslint-comments/disable-enable-pair */
-/* eslint-disable eslint-comments/no-duplicate-disable */
-/* eslint-disable eslint-comments/disable-enable-pair */
-
-/* eslint-disable eslint-comments/disable-enable-pair */
-/* eslint-disable eslint-comments/no-duplicate-disable */
-/* eslint-disable eslint-comments/disable-enable-pair */
-/* eslint-disable sonarjs/todo-tag */
-/* eslint-disable eslint-comments/disable-enable-pair */
-
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { getAppConfig } from "@/actions/config/get-app-config";
+import { auth } from "@/auth";
 
 export async function middleware(request: NextRequest) {
   try {
-    // 1. Verificar primero rutas excluidas (más eficiente que el matcher)
+    // 🔄 Autentica la sesión actual (también actualiza la expiración de sesión automáticamente)
+    const session = await auth();
+
+    // ✅ Verificamos primero si la ruta debe ser ignorada por el middleware (por eficiencia)
     const pathname = request.nextUrl.pathname;
     if (
-      pathname.startsWith("/api") ||
-      pathname.startsWith("/_next") ||
-      pathname.startsWith("/maintenance") ||
-      pathname === "/favicon.ico" ||
-      pathname === "/sitemap.xml" ||
-      pathname === "/robots.txt"
+      pathname.startsWith("/api") || // Rutas de API
+      pathname.startsWith("/_next") || // Recursos internos de Next.js (JS, CSS, etc.)
+      pathname.startsWith("/maintenance") || // Página de mantenimiento
+      pathname === "/favicon.ico" || // Ícono del navegador
+      pathname === "/sitemap.xml" || // Mapa del sitio
+      pathname === "/robots.txt" // Archivo para bots
     ) {
-      return NextResponse.next();
+      return NextResponse.next(); // 👉 Continuamos sin hacer nada
     }
 
-    // 2. Usar getAppConfig (ya cacheado)
+    // 🔧 Obtenemos configuración global desde la base de datos (usualmente cacheado)
     const { isMaintenanceMode } = await getAppConfig();
 
-    // TODO: agregar cuando tengas los usuarios
-    // Verificar si hay token (sesión autenticada)
-    // const token = await getToken({ req: request });
-    // const userRole = token?.role;
+    // 🔐 Comprobamos si el usuario autenticado tiene el rol "ADMIN"
+    const isAdmin = session?.user.role === "ADMIN";
 
-    // Permitir acceso a admins autenticados
-    // const isAdmin = userRole === "ADMIN";\
-    // simulando un admin
-    const isAdmin = true;
-
+    // 🚧 Si estamos en modo mantenimiento y el usuario no es admin, redirigimos
     if (isMaintenanceMode && !isAdmin) {
       const response = NextResponse.rewrite(new URL("/maintenance", request.url), {
-        status: 503,
+        status: 503, // Código estándar para "Servicio no disponible"
       });
-      response.headers.set("Retry-After", "3600");
+      response.headers.set("Retry-After", "3600"); // 🕒 Sugerencia para que los bots reintenten en 1 hora
       return response;
     }
 
-    // 3. Redirigir si está en mantenimiento
-    // if (isMaintenanceMode) {
-    //   const response = NextResponse.rewrite(new URL("/maintenance", request.url), {
-    //     status: 503,
-    //   });
-    //   response.headers.set("Retry-After", "3600"); // 1 hora para reintentos
-    //   return response;
-    // }
-
+    // ✅ Si no hay modo mantenimiento o el usuario es admin, permitimos acceso
     return NextResponse.next();
   } catch (error) {
+    // ⚠️ En caso de error en el middleware, mostramos en consola
     console.error("Middleware error:", error);
-    // En producción, considera enviar el error a un servicio de monitoreo
-    return NextResponse.next(); // Fallar abierto (open fail)
+
+    // En producción podrías enviar este error a Sentry, LogRocket, etc.
+
+    // 🚪 Continuamos permitiendo el acceso (fail open) para no bloquear la app por un error del middleware
+    return NextResponse.next();
   }
 }
 
-// Opcional: Matcher como respaldo (Next.js recomienda esta aproximación)
+// ⚙️ Configuración del middleware
+// Este matcher indica en qué rutas se debe ejecutar el middleware.
+// Ignoramos rutas de API, estáticos, imágenes, favicon y mantenimiento.
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|maintenance|sitemap.xml|robots.txt).*)"],
 };
