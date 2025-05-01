@@ -1,7 +1,6 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
-import { getAppConfig } from "@/actions/config/get-app-config";
 import { auth } from "@/auth";
 
 export async function middleware(request: NextRequest) {
@@ -23,7 +22,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // 🔧 Obtenemos configuración global desde la base de datos (usualmente cacheado)
-    const { isMaintenanceMode } = await getAppConfig();
+    const response = await fetch(`${request.nextUrl.origin}/api/app-config`);
+    const config = await response.json();
+    const { isMaintenanceMode } = config;
 
     // 🔐 Comprobamos si el usuario autenticado tiene el rol "ADMIN"
     const isAdmin = session?.user.role === "ADMIN";

@@ -102,7 +102,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: { readonly children: React.ReactNode }) {
   const { defaultLocale, isMaintenanceMode, googleAnalyticsTrackingId } = await getAppConfig();
   // simulando un admin
-  const isAdmin = true;
+  const isAdmin = false;
 
   const isActiveGoogleAnalytics =
     process.env.NODE_ENV !== "development" && googleAnalyticsTrackingId;

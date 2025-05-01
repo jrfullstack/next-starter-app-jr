@@ -1,4 +1,5 @@
 import { ModeToggle } from "@/components";
+import SignIn from "@/components/auth/sign-in";
 
 export default function Home() {
   return (
@@ -6,6 +7,7 @@ export default function Home() {
       <h1 className="text-3xl">Bienvenido a mi plantilla para proyectos con NextJS</h1>
 
       <ModeToggle />
+      <SignIn />
     </div>
   );
 }
