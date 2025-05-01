@@ -1,6 +1,6 @@
 {
   "name": "next-starter-app-jr",
-  "version": "0.6.3",
+  "version": "0.6.1",
   "private": true,
   "scripts": {
     "dev": "npm run prisma:generate && next dev --turbopack",
