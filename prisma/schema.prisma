@@ -17,6 +17,7 @@ model AppConfig {
   logoUrl                   String? @db.VarChar(255)
   isMaintenanceMode         Boolean @default(false) // ¿La plataforma está en mantenimiento?
   googleAnalyticsTrackingId String? // ID de seguimiento de Google Analytics
+  // considerar redes sociales pagina de mantenimiento también la necesita o solo incluir en el footer
 
   // Usuario
   isUserSignUpEnabled          Boolean @default(true) // Permitir registros
