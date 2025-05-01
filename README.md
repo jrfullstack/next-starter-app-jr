@@ -106,39 +106,35 @@ npm run seed
 
 ---
 
-## 🧠 Modelo de configuración (`AppConfig`)
+### 🧠 Opciones de Configuración del Administrador
 
-```prisma
-model AppConfig {
-  id Int @id @default(1) @map("_id")
+El sistema permite configurar distintos aspectos globales de la aplicación desde un panel de administración central. A continuación se detallan las opciones disponibles:
 
-  // General
-  contactEmail              String?
-  logoUrl                   String? @db.VarChar(255)
-  isMaintenanceMode         Boolean @default(false)
-  googleAnalyticsTrackingId String?
+#### 🔧 General
 
-  // Usuario
-  isUserSignUpEnabled          Boolean @default(true)
-  maxActiveSessionsPerUser     Int?    @default(3)
-  isSingleUserPerIpEnforced    Boolean @default(false)
-  isEmailVerificationRequired  Boolean @default(true)
-  isGlobalTwoFactorAuthEnabled Boolean @default(false)
-  sessionTimeoutLimitMinutes   Int?    @default(30)
+- **Correo de contacto**: Dirección de email visible para usuarios o para fines administrativos.
+- **Logo del sitio**: URL del logotipo usado en la interfaz pública.
+- **Modo mantenimiento**: Permite desactivar temporalmente el sitio para todos los usuarios excepto administradores.
+- **Google Analytics ID**: Código de seguimiento de Google Analytics (opcional).
 
-  // SEO Global
-  siteDisplayName      String?
-  siteUrl              String?
-  siteDescription      String? @db.VarChar(255)
-  faviconUrl           String? @db.VarChar(255)
-  defaultLocale        String  @default("es")
-  isSiteNoIndexEnabled Boolean @default(false)
-  seoDefaultKeywords   String? @db.VarChar(255)
+#### 👤 Configuración de Usuarios
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-```
+- **Registro habilitado**: Permite activar o desactivar el registro de nuevos usuarios.
+- **Máximo de sesiones por usuario**: Límite de sesiones activas simultáneas por cuenta.
+- **Un usuario por IP**: Impide múltiples cuentas conectándose desde la misma IP.
+- **Requiere verificación por email**: Exige confirmación por correo al registrarse.
+- **Autenticación 2FA global**: Habilita verificación en dos pasos para todos los usuarios.
+- **Tiempo máximo de sesión (minutos)**: Tiempo límite de inactividad antes de cerrar sesión automáticamente.
+
+#### 🌐 Configuración Global de SEO
+
+- **Nombre del sitio**: Nombre que se muestra en buscadores y pestañas.
+- **URL del sitio**: Dirección principal del dominio del proyecto.
+- **Descripción del sitio**: Descripción corta para propósitos de SEO.
+- **Favicon**: URL del ícono del sitio.
+- **Idioma por defecto**: Localización predeterminada (por ejemplo, `es`, `en`).
+- **Evitar indexación**: Activa `noindex` global para evitar que el sitio aparezca en buscadores.
+- **Palabras clave SEO por defecto**: Lista de keywords separadas por coma para SEO global.
 
 ---
 
