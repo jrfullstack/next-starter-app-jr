@@ -29,7 +29,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // 2. Usar getAppConfig (ya cacheado)
-    const { isMaintenanceMode: maintenanceMode } = await getAppConfig();
+    const { isMaintenanceMode } = await getAppConfig();
 
     // TODO: agregar cuando tengas los usuarios
     // Verificar si hay token (sesión autenticada)
@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
     // simulando un admin
     const isAdmin = true;
 
-    if (maintenanceMode && !isAdmin) {
+    if (isMaintenanceMode && !isAdmin) {
       const response = NextResponse.rewrite(new URL("/maintenance", request.url), {
         status: 503,
       });
@@ -50,7 +50,7 @@ export async function middleware(request: NextRequest) {
     }
 
     // 3. Redirigir si está en mantenimiento
-    // if (maintenanceMode) {
+    // if (isMaintenanceMode) {
     //   const response = NextResponse.rewrite(new URL("/maintenance", request.url), {
     //     status: 503,
     //   });

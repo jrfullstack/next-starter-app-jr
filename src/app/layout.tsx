@@ -100,11 +100,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Componente principal del layout
 export default async function RootLayout({ children }: { readonly children: React.ReactNode }) {
-  const {
-    defaultLocale,
-    isMaintenanceMode: maintenanceMode,
-    googleAnalyticsTrackingId,
-  } = await getAppConfig();
+  const { defaultLocale, isMaintenanceMode, googleAnalyticsTrackingId } = await getAppConfig();
   // simulando un admin
   const isAdmin = true;
 
@@ -133,7 +129,7 @@ export default async function RootLayout({ children }: { readonly children: Reac
           enableSystem
           disableTransitionOnChange
         >
-          {maintenanceMode && isAdmin && (
+          {isMaintenanceMode && isAdmin && (
             <div className="bg-yellow-200 py-2 text-center text-sm font-medium text-yellow-900">
               ⚠️ Modo mantenimiento activo. Estás viendo el sitio como administrador.
             </div>
