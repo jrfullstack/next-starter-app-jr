@@ -61,24 +61,45 @@ npm run seed
 
 ```json
 "scripts": {
+  // Inicia el servidor de desarrollo con Turbopack y genera el cliente Prisma
   "dev": "npm run prisma:generate && next dev --turbopack",
+  // Inicia el servidor de desarrollo con variables de entorno de producción
   "dev:prodenv": "dotenv -e .env.production -- next dev --turbopack",
+  // Ejecuta migraciones y compila la aplicación Next.js para producción
   "build": "npm run prisma:deploy && next build",
+  // Inicia la aplicación Next.js en modo producción
   "start": "next start",
+  // Compila y ejecuta la app para previsualización como si fuera producción
   "preview": "next build && next start",
+  // Ejecuta ESLint para detectar problemas de estilo o errores
   "lint": "eslint .",
+  // Ejecuta ESLint y corrige automáticamente los errores posibles
   "lint:fix": "eslint --fix",
+  // Verifica si los archivos están correctamente formateados con Prettier
   "format:check": "prettier --check \"**/*.{ts,tsx,mdx}\" --cache",
+  // Formatea automáticamente los archivos con Prettier
   "format:write": "prettier --write \"**/*.{ts,tsx,mdx}\" --cache",
+  // Revisa los tipos TypeScript sin generar archivos
   "typecheck": "tsc --noEmit",
+  // Revisa tipos, linter y compila el proyecto (verificación completa)
   "check-all": "npm run typecheck && npm run lint && npm run build",
+  // Aplica correcciones de estilo y formateo automáticamente
   "fix-all": "npm run lint:fix && npm run format:write",
+  // Ejecuta un script personalizado para verificar el estado general del proyecto
+  "health": "tsx ./tools/health-check.ts",
+  // Realiza un release automático con commit, push y tag usando bumpp
   "release": "bumpp --commit --push --tag",
+  // Genera el cliente de Prisma a partir del esquema actual
   "prisma:generate": "npx prisma generate",
+  // Aplica las migraciones en producción y genera el cliente Prisma
   "prisma:deploy": "npx prisma migrate deploy && npm run prisma:generate",
+  // Ejecuta migraciones en desarrollo
   "prisma:migrate": "npx prisma migrate dev",
+  // Ejecuta el script de seed (carga de datos de prueba)
   "seed": "tsx ./prisma/seed/seed.ts",
+  // Ejecuta el seed con variables de entorno de producción
   "seed:prod": "dotenv -e .env.production -- tsx ./prisma/seed/seed.ts",
+  // Inicializa Husky para hooks de Git
   "prepare": "husky || true"
 }
 ```

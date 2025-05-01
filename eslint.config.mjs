@@ -38,6 +38,7 @@ const eslintConfig = [
       "public",
       "prisma",
       "src/app/generated",
+      "tools",
     ],
   },
   {
