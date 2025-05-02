@@ -2,10 +2,10 @@ import Link from "next/link";
 import { Clock, Settings, Wrench } from "lucide-react";
 
 interface Props {
-  readonly contactEmail: string | null;
+  contactEmail: string | null;
 }
 // que no tenga el layout o que tenga acceso a contacto
-export function MaintenanceMode({ contactEmail }: Props) {
+export function MaintenanceMode({ contactEmail }: Readonly<Props>) {
   return (
     <div className="from-background to-muted/30 min-h-screen bg-gradient-to-b">
       <main className="flex items-center justify-center">

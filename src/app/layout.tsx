@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import { SessionProvider } from "next-auth/react";
+import { Toaster } from "sonner";
 
 import { getAppConfig } from "@/actions/config/get-app-config";
 import { ThemeProvider } from "@/components";
@@ -99,7 +101,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 // Componente principal del layout
-export default async function RootLayout({ children }: { readonly children: React.ReactNode }) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const { defaultLocale, isMaintenanceMode, googleAnalyticsTrackingId } = await getAppConfig();
   // simulando un admin
   const isAdmin = false;
@@ -122,20 +124,22 @@ export default async function RootLayout({ children }: { readonly children: Reac
             strategy="afterInteractive"
           />
         )}
-
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {isMaintenanceMode && isAdmin && (
-            <div className="bg-yellow-200 py-2 text-center text-sm font-medium text-yellow-900">
-              ⚠️ Modo mantenimiento activo. Estás viendo el sitio como administrador.
-            </div>
-          )}
-          {children}
-        </ThemeProvider>
+        <SessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {isMaintenanceMode && isAdmin && (
+              <div className="bg-yellow-200 py-2 text-center text-sm font-medium text-yellow-900">
+                ⚠️ Modo mantenimiento activo. Estás viendo el sitio como administrador.
+              </div>
+            )}
+            {children}
+            <Toaster position="top-right" richColors />
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   );
