@@ -192,14 +192,8 @@ const eslintConfig = [
       // --- Functional Programming Rules ---
       "functional/no-let": "off", // Permite el uso de 'let' en React (para mayor flexibilidad)
       "functional/no-mixed-types": "warn", // Muestra advertencia si se mezclan tipos en funciones
+      "functional/prefer-readonly-type": "off", // evita que todos tipos sean solo lectura
       "functional/no-return-void": "off", // Permite el uso de return void en React
-      "functional/prefer-readonly-type": [
-        "warn",
-        {
-          allowLocalMutation: true,
-          allowMutableReturnType: true,
-        },
-      ], // Prefiere tipos de solo lectura
 
       // --- SonarJS Rules ---
       ...sonarjsPlugin.configs.recommended.rules,
