@@ -1,8 +1,14 @@
-// import { PrismaClient } from "@prisma/client";
+"use server";
 import { PrismaClient } from "@/app/generated/prisma";
 import { initialData } from "./seedData";
+import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
+
+// if (!process.env.NODE_ENV || process.env.NODE_ENV !== "development") {
+//   console.log(process.env.NODE_ENV);
+//   throw new Error("Este script solo puede ejecutarse en entorno de desarrollo.");
+// }
 
 async function main() {
   console.log("🌱 Iniciando proceso de seed...");
@@ -10,6 +16,9 @@ async function main() {
   // 1. Seed para AppConfig (configuración única)
   console.log("🛠 Configurando AppConfig...");
   await seedAppConfig();
+
+  console.log("🛠 Configurando Users...");
+  await seedUsers();
 
   console.log("✅ Seed completado exitosamente");
 }
@@ -25,7 +34,7 @@ async function seedAppConfig() {
     where: { id: 1 },
     update: {
       id: configData.id ? Number(configData.id) : undefined,
-      contactEmail: configData.contactEmail?.toString(),
+      emailUser: configData.contactEmail?.toString(),
       logoUrl: configData.logoUrl?.toString(),
       isMaintenanceMode: configData.isMaintenanceMode === true,
       isUserSignUpEnabled: configData.isUserSignUpEnabled === true,
@@ -44,7 +53,7 @@ async function seedAppConfig() {
     },
     create: {
       id: 1, // Configuración singleton
-      contactEmail: configData.contactEmail?.toString() || null,
+      emailUser: configData.contactEmail?.toString() || null,
       logoUrl: configData.logoUrl?.toString() || null,
       isMaintenanceMode: configData.isMaintenanceMode === true ? true : false,
       googleAnalyticsTrackingId: configData.googleAnalyticsTrackingId?.toString() || null,
@@ -67,6 +76,30 @@ async function seedAppConfig() {
   });
 }
 
+async function seedUsers() {
+  console.log("👥 Seed de usuarios...");
+
+  await prisma.userVerificationToken.deleteMany();
+  await prisma.user.deleteMany();
+
+  for (const user of initialData.users) {
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+
+    await prisma.user.create({
+      data: {
+        email: user.email,
+        name: user.name,
+        role: user.role ?? "USER",
+        hashedPassword,
+        profileImageUrl: user.profileImageUrl,
+      },
+    });
+  }
+
+  console.log("✅ Usuarios insertados");
+}
+
+// if (process.env.NODE_ENV === "development") {
 main()
   .catch((e) => {
     console.error("❌ Error durante el seed:", e);
@@ -75,3 +108,6 @@ main()
   .finally(async () => {
     await prisma.$disconnect();
   });
+// } else {
+//   console.log("🚫 Seed script bloqueado fuera del entorno de desarrollo.");
+// }

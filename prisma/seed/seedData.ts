@@ -1,3 +1,5 @@
+import { Role } from "@/app/generated/prisma";
+
 interface SeedAppConfig {
   id?: string;
   contactEmail?: String;
@@ -22,9 +24,17 @@ interface SeedAppConfig {
   seoDefaultKeywords?: String;
 }
 
+export interface SeedUser {
+  email: string;
+  password: string;
+  name?: string;
+  role?: Role;
+  profileImageUrl?: string;
+}
+
 interface SeedData {
   appConfig: SeedAppConfig[];
-  // SubscriptionPrice: SeedSubscriptionPrice[];
+  users: SeedUser[];
 }
 
 export const initialData: SeedData = {
@@ -50,6 +60,20 @@ export const initialData: SeedData = {
       defaultLocale: "es",
       isSiteNoIndexEnabled: false,
       seoDefaultKeywords: "negocio, gestión, plataforma, SaaS",
+    },
+  ],
+  users: [
+    {
+      email: "admin@midominio.com",
+      password: "Admin1234!",
+      name: "Administrador",
+      role: "ADMIN",
+    },
+    {
+      email: "user@midominio.com",
+      password: "User1234!",
+      name: "Usuario",
+      role: "USER",
     },
   ],
 };
