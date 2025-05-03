@@ -13,7 +13,6 @@ model AppConfig {
   id Int @id @default(1) @map("_id") // Config única (singleton)
 
   // General
-  contactEmail              String? // Correo de contacto o soporte
   logoUrl                   String? @db.VarChar(255)
   isMaintenanceMode         Boolean @default(false) // ¿La plataforma está en mantenimiento?
   googleAnalyticsTrackingId String? // ID de seguimiento de Google Analytics
@@ -23,7 +22,7 @@ model AppConfig {
   isUserSignUpEnabled          Boolean @default(true) // Permitir registros
   maxActiveSessionsPerUser     Int?    @default(3) // Límite de sesiones por usuario
   isSingleUserPerIpEnforced    Boolean @default(false) // ¿Evitar múltiples usuarios por IP?
-  isEmailVerificationRequired  Boolean @default(true) // ¿Verificación de email requerida?
+  isEmailVerificationRequired  Boolean @default(false) // ¿Verificación de email requerida?
   isGlobalTwoFactorAuthEnabled Boolean @default(false) // ¿Está activo el 2FA globalmente?
   sessionTimeoutLimitMinutes   Int?    @default(30) // Tiempo de expiración de sesión en minutos
 
@@ -35,7 +34,13 @@ model AppConfig {
   defaultLocale        String  @default("es")
   isSiteNoIndexEnabled Boolean @default(false)
   seoDefaultKeywords   String? @db.VarChar(255)
-  // También puedes usarlo para evitar que se genere el sitemap.xml completo o devolver un archivo robots.txt que bloquee todo (User-agent: * Disallow: /).
+
+  // SMTP Config
+  emailHost         String? @db.VarChar(255)
+  emailPort         Int?    @default(587)
+  emailUser         String? @db.VarChar(255) // Correo de contacto o soporte
+  emailPassEnc      String? @db.Text // Encriptada
+  isEmailConfigured Boolean @default(false) // Indica si está listo para usar
 
   createdAt DateTime @default(now()) // Fecha de creación
   updatedAt DateTime @updatedAt // Fecha de última modificación
@@ -62,6 +67,15 @@ model User {
   verificationToken UserVerificationToken[] // Registro de Tokens
   blockedIp         UserBlockedIp[]
   blockedIpLog      UserBlockedIpLog[]
+
+  // términos y condiciones
+  // acceptedTermsAt DateTime?
+  // acceptedPrivacyPolicyAt DateTime?
+
+  //  referidos
+  // referralCode String? @unique
+  // referredBy   String? // ID del usuario que refirió
+  // referrer     User?   @relation("Referrals", fields: [referredBy], references: [id])
 
   @@index([emailVerified]) // índices en campos frecuentemente consultados:
 }
@@ -92,6 +106,7 @@ model UserVerificationToken {
 
   user User @relation(fields: [userId], references: [id])
 
+  @@unique([userId, tokenType])
   @@index([expiresAt])
   @@map("UserVerificationToken")
 }
@@ -183,18 +198,4 @@ enum TokenType {
   PASSWORD_RESET
   TWO_FACTOR_AUTH
   ACCOUNT_DELETION
-}
-
-enum SeoType {
-  PAGE
-  ARTICLE
-  VIDEO
-  AUDIO
-  IMAGE
-  PRODUCT
-  WEBSITE
-  GENRE
-  ARTIST
-  TAG
-  OTHER
 }
