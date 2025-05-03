@@ -1,12 +1,14 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-import { auth } from "@/auth";
+import { Role } from "./app/generated/prisma";
 
 export async function middleware(request: NextRequest) {
   try {
     // 🔄 Autentica la sesión actual (también actualiza la expiración de sesión automáticamente)
-    const session = await auth();
+    const secret = process.env.AUTH_SECRET;
+    const token = await getToken({ req: request, secret });
 
     // ✅ Verificamos primero si la ruta debe ser ignorada por el middleware (por eficiencia)
     const pathname = request.nextUrl.pathname;
@@ -27,7 +29,7 @@ export async function middleware(request: NextRequest) {
     const { isMaintenanceMode } = config;
 
     // 🔐 Comprobamos si el usuario autenticado tiene el rol "ADMIN"
-    const isAdmin = session?.user.role === "ADMIN";
+    const isAdmin = token?.role === Role.ADMIN;
 
     // 🚧 Si estamos en modo mantenimiento y el usuario no es admin, redirigimos
     if (isMaintenanceMode && !isAdmin) {
