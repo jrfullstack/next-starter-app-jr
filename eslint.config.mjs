@@ -126,7 +126,7 @@ const eslintConfig = [
       ...unicornPlugin.configs.recommended.rules,
       "unicorn/prevent-abbreviations": "off", // Permite abreviaturas (para flexibilidad en proyectos reales)
       "unicorn/no-null": "off", // Permite el uso de null
-      "unicorn/prefer-node-protocol": "error", // Exige el uso de 'node' en los imports relacionados con el protocolo
+      "unicorn/prefer-node-protocol": "off", // Exige el uso de 'node' en los imports relacionados con el protocolo
       "unicorn/prefer-ternary": "warn", // Recomienda el uso de ternarios en lugar de if-else
       "unicorn/consistent-function-scoping": "off", // Desactivada debido a las particularidades de React
       "unicorn/no-json-parse": "off",
