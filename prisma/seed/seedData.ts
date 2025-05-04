@@ -18,6 +18,7 @@ interface SeedAppConfig {
   siteDisplayName?: String; // Nombre de la plataforma
   siteUrl?: String; // URL principal (https://midominio.com)
   siteDescription?: String;
+  faviconUrl?: String;
 
   defaultLocale?: String;
   isSiteNoIndexEnabled?: Boolean;
@@ -56,6 +57,7 @@ export const initialData: SeedData = {
       siteDisplayName: "Mi Aplicación",
       siteUrl: "https://midominio.com",
       siteDescription: "La mejor plataforma para gestionar tu negocio",
+      faviconUrl: "/favicon/favicon.ico",
 
       defaultLocale: "es",
       isSiteNoIndexEnabled: false,

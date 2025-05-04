@@ -47,6 +47,7 @@ async function seedAppConfig() {
       siteDisplayName: configData.siteDisplayName?.toString(),
       siteUrl: configData.siteUrl?.toString(),
       siteDescription: configData.siteDescription?.toString(),
+      faviconUrl: configData.faviconUrl?.toString(),
       defaultLocale: configData.defaultLocale?.toString(),
       isSiteNoIndexEnabled: configData.isSiteNoIndexEnabled === true,
       seoDefaultKeywords: configData.seoDefaultKeywords?.toString(),
@@ -68,6 +69,7 @@ async function seedAppConfig() {
       siteDisplayName: configData.siteDisplayName?.toString() || "Mi Aplicación",
       siteUrl: configData.siteUrl?.toString() || "http://localhost:3000",
       siteDescription: configData.siteDescription?.toString() || "Bienvenido a la aplicación",
+      faviconUrl: configData.faviconUrl?.toString() || "/favicon/favicon.ico",
 
       defaultLocale: configData.defaultLocale?.toString() || "es",
       isSiteNoIndexEnabled: !!configData.isSiteNoIndexEnabled || false,
