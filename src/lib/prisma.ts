@@ -1,7 +1,6 @@
 import { PrismaClient } from "@/app/generated/prisma";
 
 const globalForPrisma = globalThis as unknown as {
-  // eslint-disable-next-line functional/prefer-readonly-type
   prisma: PrismaClient;
 };
 
