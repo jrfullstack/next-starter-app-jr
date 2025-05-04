@@ -8,6 +8,7 @@ import type { ResolvedAppConfig } from "@/types";
 
 // Esta función se ejecutará UNA sola vez por request (o por ruta si está estática)
 // y se cachea por Next.js internamente
+// export const getAppConfig =
 export const getAppConfig = cache(
   async (): Promise<ResolvedAppConfig> => {
     try {
@@ -23,11 +24,16 @@ export const getAppConfig = cache(
           .filter((k) => k.length > 0);
       };
 
+      const {
+        emailPassEnc, // 🚫 lo omitimos intencionalmente
+        ...safeConfig
+      } = config ?? {};
+
       // Si no existe la config en la DB, devolvemos valores por defecto
       // Combina la configuración de DB con los valores por defecto
       return {
         ...defaultConfig,
-        ...config,
+        ...safeConfig,
         siteDisplayName: config?.siteDisplayName ?? defaultConfig.siteDisplayName,
         siteDescription: config?.siteDescription ?? defaultConfig.siteDescription,
         siteUrl: config?.siteUrl ?? defaultConfig.siteUrl,
