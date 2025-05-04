@@ -3,7 +3,6 @@ import type { ResolvedAppConfig } from "@/types";
 // Valores por defecto (debe satisfacer el tipo ResolvedAppConfig)
 export const defaultConfig: ResolvedAppConfig = {
   id: 1,
-  contactEmail: null,
   logoUrl: null,
   isMaintenanceMode: false,
   googleAnalyticsTrackingId: "",
@@ -22,6 +21,12 @@ export const defaultConfig: ResolvedAppConfig = {
   isSiteNoIndexEnabled: false,
   seoDefaultKeywords: [],
   faviconUrl: null,
+
+  // SMTP
+  emailHost: null,
+  emailPort: 587,
+  emailUser: "noreply@midominio.com",
+  isEmailConfigured: false,
 
   createdAt: new Date(),
   updatedAt: new Date(),
