@@ -4,9 +4,12 @@ import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 
 import { getAppConfig } from "@/actions/config/get-app-config";
+import { auth } from "@/auth";
 import { ThemeProvider } from "@/components";
 import { geistMono, geistSans } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+
+import { Role } from "./generated/prisma";
 
 import "@/styles/globals.css";
 
@@ -102,9 +105,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 // Componente principal del layout
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth();
+  const isAdmin = session?.user?.role === Role.ADMIN;
   const { defaultLocale, isMaintenanceMode, googleAnalyticsTrackingId } = await getAppConfig();
-  // simulando un admin
-  const isAdmin = false;
 
   const isActiveGoogleAnalytics =
     process.env.NODE_ENV !== "development" && googleAnalyticsTrackingId;
