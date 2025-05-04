@@ -3,7 +3,6 @@ export interface AppConfig {
   id: number;
 
   // General
-  contactEmail: string | null;
   logoUrl: string | null;
   isMaintenanceMode: boolean;
   googleAnalyticsTrackingId: string | null;
@@ -25,6 +24,13 @@ export interface AppConfig {
   isSiteNoIndexEnabled: boolean;
   seoDefaultKeywords: string | null;
 
+  // Email SMTP Config
+  emailHost: string | null;
+  emailPort: number | null;
+  emailUser: string | null;
+  emailPassEnc: string | null; // 🔒 Nunca se expone públicamente
+  isEmailConfigured: boolean;
+
   // Fechas
   createdAt: Date;
   updatedAt: Date;
@@ -41,6 +47,7 @@ export interface ResolvedAppConfig
     | "siteDescription"
     | "googleAnalyticsTrackingId"
     | "seoDefaultKeywords"
+    | "emailPassEnc"
   > {
   // Propiedades que nunca serán null
   siteDisplayName: string;
