@@ -1,3 +1,4 @@
+"use server";
 import crypto from "crypto";
 
 const algorithm = "aes-256-ctr";
@@ -10,14 +11,14 @@ if (key.length !== 32) {
   throw new Error("La clave de encriptación debe ser de 32 bytes.");
 }
 
-export function encrypt(text: string): string {
+export async function encrypt(text: string): Promise<string> {
   const iv = crypto.randomBytes(16); // Debe ser de 16 bytes
   const cipher = crypto.createCipheriv(algorithm, key, iv);
   const encrypted = Buffer.concat([cipher.update(text), cipher.final()]);
   return `${iv.toString("hex")}:${encrypted.toString("hex")}`;
 }
 
-export function decrypt(payload: string): string {
+export async function decrypt(payload: string): Promise<string> {
   const [ivHex, encryptedHex] = payload.split(":");
   if (!ivHex || !encryptedHex) {
     throw new Error("Formato inválido de cadena encriptada");
