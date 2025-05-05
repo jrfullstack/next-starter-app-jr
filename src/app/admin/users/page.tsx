@@ -6,24 +6,28 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 
-export default function AdminPage() {
+export default function UsersAdminPage() {
   return (
-    <ContentLayout title="Panel Principal">
+    <ContentLayout title="Account">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
-              <Link href="/">Panel Principal</Link>
+              <Link href="/">Inicio</Link>
             </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Configuración</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-      <div className="flex min-h-dvh flex-col items-center justify-center">
-        <h1>AdminPage</h1>
-        <Link href="/">Back to Home</Link>
-        <Link href="/admin/settings">settings</Link>
+      <div className="my-4">
+        <h1> Users Admin Page </h1>
       </div>
     </ContentLayout>
   );
