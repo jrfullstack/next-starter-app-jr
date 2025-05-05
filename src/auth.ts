@@ -4,6 +4,7 @@ declare module "next-auth" {
   interface User {
     role?: Role;
     emailVerified?: Date | null;
+    profileImageUrl?: string;
   }
 }
 import NextAuth from "next-auth";
@@ -67,6 +68,7 @@ export const authConfig: NextAuthConfig = {
         token.email = user.email;
         token.name = user.name;
         token.role = user.role;
+        token.profileImageUrl = user.profileImageUrl;
         token.emailVerified = user.emailVerified;
       }
       return token;
@@ -78,6 +80,8 @@ export const authConfig: NextAuthConfig = {
         session.user.email = token.email as string;
         session.user.role = token.role as Role;
         session.user.name = token.name as string;
+        session.user.profileImageUrl = token.profileImageUrl as string;
+
         session.user.emailVerified = token.emailVerified as Date;
       }
       return session;
