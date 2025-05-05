@@ -1,5 +1,21 @@
+import Link from "next/link";
+
 import { getAppConfig } from "@/actions/config/get-app-config";
-import { GeneralSettings, SeoSettings, SmtpSettings, UserSettings } from "@/components";
+import {
+  ContentLayout,
+  GeneralSettings,
+  SeoSettings,
+  SmtpSettings,
+  UserSettings,
+} from "@/components";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default async function SettingsPage() {
@@ -27,8 +43,22 @@ export default async function SettingsPage() {
   } = await getAppConfig();
 
   return (
-    <div className="container py-10">
-      <div className="mb-8">
+    <ContentLayout title="Account">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/">Inicio</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Configuración</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="my-4">
         <h1 className="text-3xl font-bold tracking-tight">Configuración de la aplicación</h1>
         <p className="text-muted-foreground mt-2">
           Administra la configuración global de la plataforma.
@@ -81,6 +111,6 @@ export default async function SettingsPage() {
           />
         </TabsContent>
       </Tabs>
-    </div>
+    </ContentLayout>
   );
 }
