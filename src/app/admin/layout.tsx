@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
+import AdminPanelLayout from "@/components/admin/panel/admin-panel-layout";
 
 export const metadata: Metadata = {
   title: "Configuración | Panel de Administración",
@@ -15,9 +16,5 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
   if (!session || session.user?.role !== "ADMIN") {
     redirect("/");
   }
-  return (
-    <div className="flex min-h-screen w-full flex-col items-center">
-      <main className="flex-1">{children}</main>
-    </div>
-  );
+  return <AdminPanelLayout>{children}</AdminPanelLayout>;
 }
