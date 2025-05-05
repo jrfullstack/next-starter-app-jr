@@ -2,8 +2,7 @@
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { prisma } from "@/lib";
-import { encrypt } from "@/utils";
+import { encrypt, prisma } from "@/lib";
 
 const appConfigSchema = z.object({
   emailHost: z.string().min(1),
@@ -27,7 +26,7 @@ export async function updateSmtpConfig(formData: FormData) {
 
     // Si la contraseña fue modificada, la encriptamos y la guardamos
     if (data.emailPassEnc && data.emailPassEnc.trim()) {
-      updatedEmailPassEnc = encrypt(data.emailPassEnc);
+      updatedEmailPassEnc = await encrypt(data.emailPassEnc);
     }
 
     // Actualizar la configuración
