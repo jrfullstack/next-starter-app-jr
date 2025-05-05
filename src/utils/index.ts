@@ -1,2 +1,2 @@
-export * from "./crypto-password";
+export * from "./get-initials-name";
 export * from "./sleep";
