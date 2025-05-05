@@ -6,8 +6,8 @@ import { Toaster } from "sonner";
 import { getAppConfig } from "@/actions/config/get-app-config";
 import { auth } from "@/auth";
 import { ThemeProvider } from "@/components";
+import { cn } from "@/lib";
 import { geistMono, geistSans } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
 
 import { Role } from "./generated/prisma";
 

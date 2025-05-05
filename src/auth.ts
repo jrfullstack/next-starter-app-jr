@@ -11,8 +11,9 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 
+import prisma from "@/lib/prisma";
+
 import type { Role } from "./app/generated/prisma";
-import prisma from "./lib/prisma";
 
 export const authConfig: NextAuthConfig = {
   trustHost: true,
