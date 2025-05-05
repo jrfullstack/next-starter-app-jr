@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { Ellipsis, LogOut } from "lucide-react";
 
 import { CollapseMenuButton } from "@/components/admin/panel/collapse-menu-button";
@@ -18,6 +19,17 @@ type MenuProps = {
 export function Menu({ isOpen }: Readonly<MenuProps>) {
   const pathname = usePathname();
   const menuList = getMenuList(pathname);
+
+  const isMenuActive = (href: string): boolean => {
+    return pathname === href; // ← exact match
+  };
+
+  const onLogout = async () => {
+    await signOut({
+      redirect: true,
+      redirectTo: `/`,
+    });
+  };
 
   return (
     <ScrollArea className="[&>div>div[style]]:!block">
@@ -58,11 +70,7 @@ export function Menu({ isOpen }: Readonly<MenuProps>) {
                       <Tooltip delayDuration={100}>
                         <TooltipTrigger asChild>
                           <Button
-                            variant={
-                              (active === undefined && pathname.startsWith(href)) || active
-                                ? "secondary"
-                                : "ghost"
-                            }
+                            variant={isMenuActive(href) || active ? "secondary" : "ghost"}
                             className="mb-1 h-10 w-full justify-start"
                             asChild
                           >
@@ -106,7 +114,7 @@ export function Menu({ isOpen }: Readonly<MenuProps>) {
               <Tooltip delayDuration={100}>
                 <TooltipTrigger asChild>
                   <Button
-                    onClick={() => {}}
+                    onClick={onLogout}
                     variant="outline"
                     className="mt-5 h-10 w-full justify-center"
                   >
@@ -119,11 +127,11 @@ export function Menu({ isOpen }: Readonly<MenuProps>) {
                         isOpen === false ? "hidden opacity-0" : "opacity-100",
                       )}
                     >
-                      Sign out
+                      Cerrar Sesión
                     </p>
                   </Button>
                 </TooltipTrigger>
-                {isOpen === false && <TooltipContent side="right">Sign out</TooltipContent>}
+                {isOpen === false && <TooltipContent side="right">Cerrar Sesión</TooltipContent>}
               </Tooltip>
             </TooltipProvider>
           </li>
