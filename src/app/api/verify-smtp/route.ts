@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
 import { getBackendEmailAppConfig } from "@/actions/config/get-backend-email-app-config";
-import { decrypt } from "@/utils";
+import { decrypt } from "@/lib";
 
 export async function POST(req: Request) {
   try {
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const pass = decrypt(config?.emailPassEnc);
+    const pass = await decrypt(config?.emailPassEnc);
 
     const transporter = nodemailer.createTransport({
       host,
