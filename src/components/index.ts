@@ -20,6 +20,7 @@ export * from "./auth/SignUpDisable";
 export * from "./auth/SignUpForm";
 export * from "./auth/VerifyUserForm";
 export * from "./maintenance/maintenance-mode";
+export * from "./providers/app-config.initializer";
 export * from "./providers/theme-provider";
 export * from "./ui/avatar";
 export * from "./ui/breadcrumb";

@@ -5,7 +5,7 @@ import { Toaster } from "sonner";
 
 import { getAppConfig } from "@/actions/config/get-app-config";
 import { auth } from "@/auth";
-import { ThemeProvider } from "@/components";
+import { AppInitializer, ThemeProvider } from "@/components";
 import { cn } from "@/lib";
 import { geistMono, geistSans } from "@/lib/fonts";
 
@@ -107,7 +107,9 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
   const isAdmin = session?.user?.role === Role.ADMIN;
-  const { defaultLocale, isMaintenanceMode, googleAnalyticsTrackingId } = await getAppConfig();
+  const config = await getAppConfig();
+
+  const { defaultLocale, isMaintenanceMode, googleAnalyticsTrackingId } = config;
 
   const isActiveGoogleAnalytics =
     process.env.NODE_ENV !== "development" && googleAnalyticsTrackingId;
@@ -134,6 +136,8 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
             enableSystem
             disableTransitionOnChange
           >
+            <AppInitializer config={{ ...config }} />
+
             {isMaintenanceMode && isAdmin && (
               <div className="bg-yellow-200 py-2 text-center text-sm font-medium text-yellow-900">
                 ⚠️ Modo mantenimiento activo. Estás viendo el sitio como administrador.
