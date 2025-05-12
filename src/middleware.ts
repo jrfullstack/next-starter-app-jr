@@ -16,7 +16,7 @@ export async function middleware(request: NextRequest) {
       pathname.startsWith("/api") || // Rutas de API
       pathname.startsWith("/_next") || // Recursos internos de Next.js (JS, CSS, etc.)
       pathname.startsWith("/maintenance") || // Página de mantenimiento
-      pathname === "/favicon.ico" || // Ícono del navegador
+      pathname === "/favicon/favicon.ico" || // Ícono del navegador
       pathname === "/sitemap.xml" || // Mapa del sitio
       pathname === "/robots.txt" // Archivo para bots
     ) {
