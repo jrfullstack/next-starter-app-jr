@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
-import { onSignOut } from "@/actions/auth/sign-out";
 import { Button, ModeToggle, UserNav } from "@/components";
 
 export default function Home() {
@@ -35,7 +34,16 @@ export default function Home() {
         <Link href="/auth/verify">Verificar el email</Link>
         <Link href="/auth/verify/resend">reenviar email de verificación</Link>
         <Link href="/admin">Panel de Administración</Link>
-        <Button onClick={onSignOut}>Salir</Button>
+        <Button
+          onClick={async () => {
+            await signOut({
+              redirect: true,
+              redirectTo: "/",
+            });
+          }}
+        >
+          Salir
+        </Button>
         <Button onClick={updateSession}>Update Session</Button>
         <Button onClick={logSession}>Log session</Button>
       </div>
