@@ -2,14 +2,12 @@
 
 import { z } from "zod";
 
+import { createVerificationCode } from "@/actions/auth/email-verify/create-verification-code";
+import type { SendEmailResponse } from "@/actions/auth/send-email";
+import { sendEmail } from "@/actions/auth/send-email";
 import { TokenType } from "@/app/generated/prisma";
-import { PrismaClientKnownRequestError } from "@/app/generated/prisma/runtime/library";
 import { getVerificationEmail } from "@/emails";
-import { generateVerificationCode } from "@/lib";
 import prisma from "@/lib/prisma";
-
-import type { SendEmailResponse } from "../send-email";
-import { sendEmail } from "../send-email";
 
 interface Props {
   userId: string;
@@ -23,8 +21,8 @@ export const sendEmailVerification = async ({
   try {
     const now = new Date();
 
-    // Verifica si ya existe un token activo (no expirado)
-    const existingToken = await prisma.userVerificationToken.findFirst({
+    // Verifica cuántos tokens activos existen
+    const existingTokens = await prisma.userVerificationToken.findMany({
       where: {
         userId,
         tokenType: TokenType.EMAIL_VERIFICATION,
@@ -32,15 +30,16 @@ export const sendEmailVerification = async ({
       },
     });
 
-    if (existingToken) {
+    if (existingTokens.length >= 3) {
       return {
         ok: false,
-        error: "Ya se ha enviado un correo de verificación recientemente. Intenta en unos minutos.",
+        error:
+          "Has alcanzado el límite de 3 intentos de verificación. Por favor, revise su correo o intente más tarde.",
       };
     }
 
+    // esto puede venir del app config
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
-    const expiresAt = new Date(Date.now() + 1000 * 60 * 15); // 15 mins
 
     // Eliminar tokens anteriores
     await prisma.userVerificationToken.deleteMany({
@@ -51,30 +50,13 @@ export const sendEmailVerification = async ({
     });
 
     // Generar y guardar token, con retry si colisiona
-    let verificationToken = generateVerificationCode();
-    try {
-      await prisma.userVerificationToken.create({
-        data: {
-          userId,
-          verificationToken,
-          expiresAt,
-          tokenType: TokenType.EMAIL_VERIFICATION,
-        },
-      });
-    } catch (error: unknown) {
-      if (error instanceof PrismaClientKnownRequestError && error.code === "P2002") {
-        verificationToken = generateVerificationCode(); // reintentar
-        await prisma.userVerificationToken.create({
-          data: {
-            userId,
-            verificationToken,
-            expiresAt,
-            tokenType: TokenType.EMAIL_VERIFICATION,
-          },
-        });
-      } else {
-        throw error;
-      }
+    const { verificationToken } = await createVerificationCode({ userId, MAX_ATTEMPTS: 5 });
+
+    if (!verificationToken) {
+      return {
+        ok: false,
+        error: "Error al crear el token de verificación",
+      };
     }
 
     const url = `${baseUrl}/auth/verify?token=${verificationToken}`;

@@ -2,10 +2,9 @@
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 
+import { sendEmailVerification } from "@/actions/auth/email-verify/send-email-verification";
+import { getAppConfig } from "@/actions/config/get-app-config";
 import { prisma } from "@/lib";
-
-import { sendEmailVerification } from "../auth/email-verify/send-email-verification";
-import { getAppConfig } from "../config/get-app-config";
 
 const signUpSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),
@@ -15,7 +14,7 @@ const signUpSchema = z.object({
 
 export const createUser = async (formData: z.infer<typeof signUpSchema>) => {
   try {
-    const { isUserSignUpEnabled } = await getAppConfig();
+    const { isUserSignUpEnabled, isEmailVerificationRequired } = await getAppConfig();
 
     if (!isUserSignUpEnabled) {
       return {
@@ -64,7 +63,6 @@ export const createUser = async (formData: z.infer<typeof signUpSchema>) => {
     });
 
     // Verificar si hay que enviar email de verificación
-    const { isEmailVerificationRequired } = await getAppConfig();
     if (isEmailVerificationRequired) {
       try {
         await sendEmailVerification({ emailTo: normalizedEmail, userId: user.id });

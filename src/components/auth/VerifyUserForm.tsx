@@ -35,8 +35,9 @@ export const VerifyUserForm = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
-  const { update, status } = useSession();
   const hasHandledRef = useRef(false);
+  const { update, status, data: session } = useSession();
+  const userId = session?.user.id;
 
   const [isPending, startTransition] = useTransition();
 
@@ -136,6 +137,12 @@ export const VerifyUserForm = ({
             ¿No recibiste el código?{" "}
             <a href="/auth/verify/resend" className="text-blue-500 underline">
               Reenviar email
+            </a>
+          </p>
+          <p className="text-muted-foreground mt-4 text-center text-sm">
+            ¿Quieres cambiar tu correo?{" "}
+            <a href={`/user/${userId}/settings`} className="text-blue-500 underline">
+              Panel de control
             </a>
           </p>
         </CardContent>
