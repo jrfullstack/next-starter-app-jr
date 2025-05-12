@@ -15,6 +15,15 @@ const signUpSchema = z.object({
 
 export const createUser = async (formData: z.infer<typeof signUpSchema>) => {
   try {
+    const { isUserSignUpEnabled } = await getAppConfig();
+
+    if (!isUserSignUpEnabled) {
+      return {
+        ok: false,
+        error: "El registro de usuarios está deshabilitado.",
+      };
+    }
+
     // Validación con Zod
     const parsed = signUpSchema.safeParse(formData);
     if (!parsed.success) {
