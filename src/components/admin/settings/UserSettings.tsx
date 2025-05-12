@@ -148,41 +148,6 @@ export const UserSettings = ({
 
             <FormField
               control={form.control}
-              name="maxActiveSessionsPerUser"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sesiones Activas Máximas</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Número máximo de sesiones activas permitidas por usuario.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="isSingleUserPerIpEnforced"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Un Usuario por IP</FormLabel>
-                    <FormDescription>
-                      Evita que múltiples usuarios se registren desde la misma dirección IP.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="isEmailVerificationRequired"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -213,6 +178,41 @@ export const UserSettings = ({
                   <FormControl>
                     <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isSingleUserPerIpEnforced"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">Un Registro Usuario por IP</FormLabel>
+                    <FormDescription>
+                      Evita que múltiples usuarios se registren desde la misma dirección IP.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="maxActiveSessionsPerUser"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sesiones Activas Máximas</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Número máximo de sesiones activas permitidas por usuario.
+                  </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />
