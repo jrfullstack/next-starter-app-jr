@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
 
     const config = await getBackendEmailAppConfig();
 
-    if (!config) {
+    if (!config || !config.emailPassEnc) {
       console.error("No hay configuración de email");
       return NextResponse.json(
         { ok: false, error: "Missing email configuration" },
@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       secure: config.emailPort === 465, // true para 465, false para otros
       auth: {
         user: config.emailUser!,
-        pass: await decrypt(config.emailPassEnc!),
+        pass: await decrypt(config.emailPassEnc),
       },
       tls: {
         rejectUnauthorized: false, // ajusta si estás usando certificados propios
