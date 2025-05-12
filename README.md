@@ -142,6 +142,7 @@ El sistema permite configurar distintos aspectos globales de la aplicación desd
 
 - Usa `core.autocrlf=false` y `.gitattributes` con `* text eol=lf` para evitar problemas de line endings en Windows.
 - Considera usar herramientas como [Coolify](https://coolify.io/) o Vercel para despliegues rápidos y sencillos.
+- En las actions de auth hay 2 archivos que usan la librería "fs", esto necesita ser remplazado por tu servicio de archivos, para evitar problemas de seguridad.
 
 ---
 
