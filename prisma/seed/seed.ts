@@ -38,7 +38,7 @@ async function seedAppConfig() {
       logoUrl: configData.logoUrl?.toString(),
       isMaintenanceMode: configData.isMaintenanceMode === true,
       isUserSignUpEnabled: configData.isUserSignUpEnabled === true,
-      isSingleUserPerIpEnforced: configData.isSingleUserPerIpEnforced === true,
+      isSingleUserPerIpOrDeviceEnforced: configData.isSingleUserPerIpOrDeviceEnforced === true,
       isEmailVerificationRequired: configData.isEmailVerificationRequired === true,
       isGlobalTwoFactorAuthEnabled: configData.isGlobalTwoFactorAuthEnabled === true,
       googleAnalyticsTrackingId: configData.googleAnalyticsTrackingId?.toString(),
@@ -61,7 +61,7 @@ async function seedAppConfig() {
 
       isUserSignUpEnabled: !!configData.isUserSignUpEnabled || true,
       maxActiveSessionsPerUser: configData.maxActiveSessionsPerUser?.valueOf() || 3,
-      isSingleUserPerIpEnforced: !!configData.isSingleUserPerIpEnforced || false,
+      isSingleUserPerIpOrDeviceEnforced: !!configData.isSingleUserPerIpOrDeviceEnforced || false,
       isEmailVerificationRequired: !!configData.isEmailVerificationRequired || true,
       isGlobalTwoFactorAuthEnabled: !!configData.isGlobalTwoFactorAuthEnabled || false,
       sessionTimeoutLimitMinutes: configData.sessionTimeoutLimitMinutes?.valueOf() || 30,
@@ -93,7 +93,7 @@ async function seedUsers() {
         name: user.name,
         role: user.role ?? "USER",
         hashedPassword,
-        profileImageUrl: user.profileImageUrl,
+        image: user.image,
       },
     });
   }

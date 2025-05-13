@@ -8,7 +8,7 @@ export interface AppConfig {
 
   isUserSignUpEnabled: boolean;
   maxActiveSessionsPerUser?: number | null;
-  isSingleUserPerIpEnforced: boolean;
+  isSingleUserPerIpOrDeviceEnforced: boolean;
   isEmailVerificationRequired: boolean;
   isGlobalTwoFactorAuthEnabled: boolean;
   sessionTimeoutLimitMinutes?: number | null;

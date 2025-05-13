@@ -1,27 +1,24 @@
+import { cookies, headers } from "next/headers";
 import type { NextAuthConfig } from "next-auth";
-
-declare module "next-auth" {
-  interface User {
-    role?: Role;
-    emailVerified?: Date | null;
-    profileImageUrl?: string;
-  }
-}
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 
+import { upsertUserSession } from "@/actions/auth/session/upsert-user-session";
+import { registerUserIfNotExistsOauth } from "@/actions/auth/signup/register-user-if-not-exists-oauth";
+import { validateDevice } from "@/actions/auth/signup/validate-device";
+import { getAppConfig } from "@/actions/config/get-app-config";
+import { Role } from "@/app/generated/prisma";
+import { getClientIp, getUserAgent } from "@/lib";
 import prisma from "@/lib/prisma";
-
-import type { Role } from "./app/generated/prisma";
 
 export const authConfig: NextAuthConfig = {
   trustHost: true,
   pages: {
-    signIn: "/auth/signin", // personalizada
-    verifyRequest: "/auth/verify", // para magic links
     newUser: "/auth/signin", // si quieres onboarding post-verificación
+    signIn: "/auth/signin", // personalizada
+    error: "/auth/error",
   },
   session: {
     strategy: "jwt",
@@ -30,46 +27,97 @@ export const authConfig: NextAuthConfig = {
 
   callbacks: {
     async signIn({ user, account }) {
-      if (account && account.provider === "google") {
-        // Verificar si el usuario ya existe en la base de datos
-        const existingUser = await prisma.user.findUnique({
-          where: { email: user.email?.toLocaleLowerCase() },
+      if (account?.provider !== "google") return true;
+
+      const { isUserSignUpEnabled, isSingleUserPerIpOrDeviceEnforced, maxActiveSessionsPerUser } =
+        await getAppConfig();
+
+      const cookieStore = await cookies();
+      const deviceId = cookieStore.get("deviceId")?.value || "";
+      const headersList = await headers();
+      const ipAddress = getClientIp(headersList) || "";
+      const userAgent = getUserAgent(headersList) || "";
+      const callbackUrl = cookieStore.get("callbackUrl")?.value || "/";
+
+      // si esta deshabilitado el registro de usuarios, lanzamos un error
+      if (!isUserSignUpEnabled) return "/auth/signup?error=registration_disabled";
+
+      const existingUser = await prisma.user.findUnique({
+        where: { email: user.email?.toLowerCase() },
+      });
+
+      if (existingUser) {
+        user.name = existingUser.name;
+        user.email = existingUser.email;
+        user.image = existingUser.image || user.image;
+
+        const sessionExpiresAt = new Date(Date.now() + 60 * 24 * 7 * 60 * 1000); // opcional si lo sigues usando
+
+        user.sessionExpiresAt = sessionExpiresAt;
+        user.deviceId = deviceId;
+
+        await upsertUserSession({
+          userId: existingUser.id,
+          deviceId,
+          ipAddress,
+          userAgent,
+          maxActiveSessions: maxActiveSessionsPerUser ?? 3,
         });
-
-        if (existingUser) {
-          // Si el usuario ya existe, usar sus datos de la base de datos
-          user.name = existingUser.name;
-          user.email = existingUser.email;
-
-          // Actualizar el lastLogin
-          await prisma.user.update({
-            where: { email: user.email!.toLocaleLowerCase() },
-            data: {
-              // lastLogin: new Date(), // Establecer la fecha actual de inicio de sesión
-            },
-          });
-        } else {
-          // Si el usuario no existe, crearlo en la base de datos
-          // await createUserWithSubscriptions({
-          //   userName: user.name!,
-          //   userEmail: user.email!.toLocaleLowerCase(),
-          // });
-        }
+        return true;
       }
-      return true;
+
+      try {
+        // si esta habilitado la restricción de un usuario por ip o dispositivo, validamos que no exista un usuario con el mismo dispositivo o ip
+        if (isSingleUserPerIpOrDeviceEnforced) {
+          const result = await validateDevice({ deviceId, ipAddress });
+          if (!result?.ok) {
+            return `/auth/signup?error=duplicate_device_or_ip&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+          }
+        }
+
+        // si no existe el usuario, lo creamos
+        await registerUserIfNotExistsOauth(
+          user,
+          deviceId,
+          ipAddress,
+          userAgent,
+          maxActiveSessionsPerUser ?? 3,
+        );
+
+        return true;
+      } catch (error) {
+        console.error("Error durante el registro:", error);
+        const cookieStore = await cookies();
+        const callbackUrl = cookieStore.get("callbackUrl")?.value || "/";
+        return `/auth/signup?error=registration_failed&callbackUrl=${encodeURIComponent(callbackUrl)}`;
+      }
     },
+
     async jwt({ token, user, trigger, session }) {
       // Actualizar el token cuando se verifica el email
       if (trigger === "update") {
         return { ...token, ...session.user };
       }
+
       if (user) {
-        token.id = user.id;
-        token.email = user.email;
-        token.name = user.name;
-        token.role = user.role;
-        token.profileImageUrl = user.profileImageUrl;
-        token.emailVerified = user.emailVerified;
+        // enviamos los datos del usuario desde la base de datos
+        const dbUser = await prisma.user.findUnique({
+          where: { email: user.email! },
+        });
+
+        token.id = dbUser?.id || (user.id as string);
+        token.name = dbUser?.name || (user.name as string);
+        token.email = dbUser?.email || (user.email as string);
+        token.role = dbUser?.role || Role.USER;
+        token.image = dbUser?.image;
+        token.emailVerified = dbUser?.emailVerified;
+        token.deviceId = user?.deviceId as string;
+
+        // maxActiveSessionsPerUser
+        if (user.sessionExpiresAt) {
+          token.sessionExpiresAt = user.sessionExpiresAt;
+        }
+        token.deviceId = user?.deviceId as string;
       }
       return token;
     },
@@ -80,19 +128,18 @@ export const authConfig: NextAuthConfig = {
         session.user.email = token.email as string;
         session.user.role = token.role as Role;
         session.user.name = token.name as string;
-        session.user.profileImageUrl = token.profileImageUrl as string;
-
+        session.user.image = token.image as string;
         session.user.emailVerified = token.emailVerified as Date;
+
+        session.sessionExpiresAt = token.sessionExpiresAt as Date;
+        session.user.deviceId = token.deviceId as string;
       }
       return session;
     },
   },
 
   providers: [
-    // ✅ Opcional: Google
     Google,
-
-    // ✅ Credentials
     Credentials({
       name: "Credentials",
       credentials: {
@@ -127,7 +174,6 @@ export const authConfig: NextAuthConfig = {
           name: user.name,
           role: user.role,
           emailVerified: user.emailVerified,
-          isTwoFactorEnabled: user.isTwoFactorEnabled,
         };
       },
     }),

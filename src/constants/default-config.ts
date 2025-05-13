@@ -9,7 +9,7 @@ export const defaultConfig: ResolvedAppConfig = {
 
   isUserSignUpEnabled: true,
   maxActiveSessionsPerUser: 3,
-  isSingleUserPerIpEnforced: false,
+  isSingleUserPerIpOrDeviceEnforced: false,
   isEmailVerificationRequired: true,
   isGlobalTwoFactorAuthEnabled: false,
   sessionTimeoutLimitMinutes: 30,

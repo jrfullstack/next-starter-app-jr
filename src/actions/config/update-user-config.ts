@@ -8,7 +8,7 @@ const appConfigSchema = z.object({
   isUserSignUpEnabled: z
     .union([z.string(), z.boolean()])
     .transform((val) => val === "true" || val === true),
-  isSingleUserPerIpEnforced: z
+  isSingleUserPerIpOrDeviceEnforced: z
     .union([z.string(), z.boolean()])
     .transform((val) => val === "true" || val === true),
 
@@ -43,7 +43,7 @@ export async function updateUserConfig(formData: FormData) {
       data: {
         isUserSignUpEnabled: data.isUserSignUpEnabled,
         maxActiveSessionsPerUser: data.maxActiveSessionsPerUser,
-        isSingleUserPerIpEnforced: data.isSingleUserPerIpEnforced,
+        isSingleUserPerIpOrDeviceEnforced: data.isSingleUserPerIpOrDeviceEnforced,
         isEmailVerificationRequired: data.isEmailVerificationRequired,
         isGlobalTwoFactorAuthEnabled: data.isGlobalTwoFactorAuthEnabled,
         sessionTimeoutLimitMinutes: data.sessionTimeoutLimitMinutes,

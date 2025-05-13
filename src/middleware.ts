@@ -1,61 +1,117 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import type { JWT } from "next-auth/jwt";
 import { getToken } from "next-auth/jwt";
 
-import { Role } from "./app/generated/prisma";
+import { Role } from "@/app/generated/prisma";
+import { prisma } from "@/lib";
+
+const LAST_SESSION_PING_COOKIE = "lastSessionPing";
+const ONE_DAY_MS = 1000 * 60 * 60 * 24;
+const SESSION_EXTENSION_DAYS = 7;
 
 export async function middleware(request: NextRequest) {
   try {
-    // 🔄 Autentica la sesión actual (también actualiza la expiración de sesión automáticamente)
-    const secret = process.env.AUTH_SECRET;
-    const token = await getToken({ req: request, secret });
-
-    // ✅ Verificamos primero si la ruta debe ser ignorada por el middleware (por eficiencia)
     const pathname = request.nextUrl.pathname;
-    if (
-      pathname.startsWith("/api") || // Rutas de API
-      pathname.startsWith("/_next") || // Recursos internos de Next.js (JS, CSS, etc.)
-      pathname.startsWith("/maintenance") || // Página de mantenimiento
-      pathname === "/favicon/favicon.ico" || // Ícono del navegador
-      pathname === "/sitemap.xml" || // Mapa del sitio
-      pathname === "/robots.txt" // Archivo para bots
-    ) {
-      return NextResponse.next(); // 👉 Continuamos sin hacer nada
+    if (isPathExcluded(pathname)) return NextResponse.next();
+
+    const token = await getToken({ req: request, secret: process.env.AUTH_SECRET });
+    const appConfig = await getAppConfig(request);
+
+    if (shouldBlockForMaintenance(token?.role as string | undefined, appConfig.isMaintenanceMode)) {
+      return buildMaintenanceResponse(request);
     }
 
-    // 🔧 Obtenemos configuración global desde la base de datos (usualmente cacheado)
-    const response = await fetch(`${request.nextUrl.origin}/api/app-config`);
-    const config = await response.json();
-    const { isMaintenanceMode } = config;
-
-    // 🔐 Comprobamos si el usuario autenticado tiene el rol "ADMIN"
-    const isAdmin = token?.role === Role.ADMIN;
-
-    // 🚧 Si estamos en modo mantenimiento y el usuario no es admin, redirigimos
-    if (isMaintenanceMode && !isAdmin) {
-      const response = NextResponse.rewrite(new URL("/maintenance", request.url), {
-        status: 503, // Código estándar para "Servicio no disponible"
-      });
-      response.headers.set("Retry-After", "3600"); // 🕒 Sugerencia para que los bots reintenten en 1 hora
-      return response;
+    const res = NextResponse.next();
+    if (token?.id && token?.deviceId && token?.sessionExpiresAt) {
+      await maybeExtendSession(request, res, token, appConfig.maxActiveSessionsPerUser);
     }
 
-    // ✅ Si no hay modo mantenimiento o el usuario es admin, permitimos acceso
-    return NextResponse.next();
+    return res;
   } catch (error) {
-    // ⚠️ En caso de error en el middleware, mostramos en consola
     console.error("Middleware error:", error);
-
-    // En producción podrías enviar este error a Sentry, LogRocket, etc.
-
-    // 🚪 Continuamos permitiendo el acceso (fail open) para no bloquear la app por un error del middleware
     return NextResponse.next();
   }
 }
 
-// ⚙️ Configuración del middleware
-// Este matcher indica en qué rutas se debe ejecutar el middleware.
-// Ignoramos rutas de API, estáticos, imágenes, favicon y mantenimiento.
+function isPathExcluded(pathname: string): boolean {
+  return (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/maintenance") ||
+    pathname === "/favicon/favicon.ico" ||
+    pathname === "/sitemap.xml" ||
+    pathname === "/robots.txt"
+  );
+}
+
+async function getAppConfig(request: NextRequest) {
+  const response = await fetch(`${request.nextUrl.origin}/api/app-config`);
+  return response.json();
+}
+
+function shouldBlockForMaintenance(role: string | undefined, isMaintenanceMode: boolean): boolean {
+  return isMaintenanceMode && role !== Role.ADMIN;
+}
+
+function buildMaintenanceResponse(request: NextRequest): NextResponse {
+  const response = NextResponse.rewrite(new URL("/maintenance", request.url), { status: 503 });
+  response.headers.set("Retry-After", "3600");
+  return response;
+}
+
+async function maybeExtendSession(
+  request: NextRequest,
+  res: NextResponse,
+  token: JWT,
+  maxSessions: number,
+) {
+  const now = new Date();
+  const lastPingRaw = request.cookies.get(LAST_SESSION_PING_COOKIE)?.value;
+  const lastPing = lastPingRaw ? Number(lastPingRaw) : 0;
+
+  if (now.getTime() - lastPing <= ONE_DAY_MS) return;
+
+  const session = await prisma.userSession.findUnique({
+    where: {
+      userId_deviceId: {
+        userId: token.id as string,
+        deviceId: token.deviceId as string,
+      },
+    },
+  });
+
+  if (!session?.sessionExpiresAt) return;
+
+  const isExpired = session.sessionExpiresAt.getTime() < now.getTime();
+  if (isExpired) {
+    const count = await prisma.userSession.count({
+      where: { userId: token.id as string },
+    });
+    if (count > maxSessions) return;
+  }
+
+  await prisma.userSession.update({
+    where: {
+      userId_deviceId: {
+        userId: token.id as string,
+        deviceId: token.deviceId as string,
+      },
+    },
+    data: {
+      sessionExpiresAt: new Date(now.getTime() + SESSION_EXTENSION_DAYS * ONE_DAY_MS),
+      updatedAt: now,
+    },
+  });
+
+  res.cookies.set(LAST_SESSION_PING_COOKIE, `${now.getTime()}`, {
+    httpOnly: true,
+    sameSite: "lax",
+    path: "/",
+    maxAge: ONE_DAY_MS / 1000,
+  });
+}
+
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|maintenance|sitemap.xml|robots.txt).*)"],
 };

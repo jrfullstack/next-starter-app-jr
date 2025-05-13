@@ -121,7 +121,7 @@ El sistema permite configurar distintos aspectos globales de la aplicación desd
 
 - **Registro habilitado**: Permite activar o desactivar el registro de nuevos usuarios.
 - **Máximo de sesiones por usuario**: Límite de sesiones activas simultáneas por cuenta.
-- **Un usuario por IP**: Impide múltiples cuentas conectándose desde la misma IP.
+- **Un Registro de usuario por IP o Por Dispositivo**: Impide múltiples registro de usuarios por Ip o dispositivo.
 - **Requiere verificación por email**: Exige confirmación por correo al registrarse.
 - **Autenticación 2FA global**: Habilita verificación en dos pasos para todos los usuarios.
 - **Tiempo máximo de sesión (minutos)**: Tiempo límite de inactividad antes de cerrar sesión automáticamente.

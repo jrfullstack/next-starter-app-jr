@@ -41,7 +41,7 @@ const userFormSchema = z.object({
     .int("Debe ser un número entero")
     .min(1, "Debe permitir al menos 1 sesión activa")
     .max(10, "No puede permitir más de 10 sesiones activas"),
-  isSingleUserPerIpEnforced: z.boolean({
+  isSingleUserPerIpOrDeviceEnforced: z.boolean({
     required_error: "Debes indicar si se restringe a un solo usuario por IP",
   }),
   isEmailVerificationRequired: z.boolean({
@@ -65,7 +65,7 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 interface UserSettingsProps {
   isUserSignUpEnabled: boolean;
   maxActiveSessionsPerUser: number | null;
-  isSingleUserPerIpEnforced: boolean;
+  isSingleUserPerIpOrDeviceEnforced: boolean;
   isEmailVerificationRequired: boolean;
   isGlobalTwoFactorAuthEnabled: boolean;
   sessionTimeoutLimitMinutes: number | null;
@@ -75,7 +75,7 @@ interface UserSettingsProps {
 export const UserSettings = ({
   isUserSignUpEnabled,
   maxActiveSessionsPerUser,
-  isSingleUserPerIpEnforced,
+  isSingleUserPerIpOrDeviceEnforced,
   isEmailVerificationRequired,
   isGlobalTwoFactorAuthEnabled,
   sessionTimeoutLimitMinutes,
@@ -85,7 +85,7 @@ export const UserSettings = ({
     defaultValues: {
       isUserSignUpEnabled: isUserSignUpEnabled,
       maxActiveSessionsPerUser: maxActiveSessionsPerUser || 3,
-      isSingleUserPerIpEnforced: isSingleUserPerIpEnforced,
+      isSingleUserPerIpOrDeviceEnforced: isSingleUserPerIpOrDeviceEnforced,
       isEmailVerificationRequired: isEmailVerificationRequired,
       isGlobalTwoFactorAuthEnabled: isGlobalTwoFactorAuthEnabled || false,
       sessionTimeoutLimitMinutes: sessionTimeoutLimitMinutes || 30,
@@ -97,7 +97,10 @@ export const UserSettings = ({
       const formData = new FormData();
       formData.append("isUserSignUpEnabled", values.isUserSignUpEnabled.toString());
       formData.append("maxActiveSessionsPerUser", values.maxActiveSessionsPerUser.toString());
-      formData.append("isSingleUserPerIpEnforced", values.isSingleUserPerIpEnforced.toString());
+      formData.append(
+        "isSingleUserPerIpOrDeviceEnforced",
+        values.isSingleUserPerIpOrDeviceEnforced.toString(),
+      );
       formData.append("isEmailVerificationRequired", values.isEmailVerificationRequired.toString());
 
       formData.append(
@@ -148,41 +151,6 @@ export const UserSettings = ({
 
             <FormField
               control={form.control}
-              name="maxActiveSessionsPerUser"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Sesiones Activas Máximas</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Número máximo de sesiones activas permitidas por usuario.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="isSingleUserPerIpEnforced"
-              render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
-                  <div className="space-y-0.5">
-                    <FormLabel className="text-base">Un Usuario por IP</FormLabel>
-                    <FormDescription>
-                      Evita que múltiples usuarios se registren desde la misma dirección IP.
-                    </FormDescription>
-                  </div>
-                  <FormControl>
-                    <Switch checked={field.value} onCheckedChange={field.onChange} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="isEmailVerificationRequired"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
@@ -213,6 +181,44 @@ export const UserSettings = ({
                   <FormControl>
                     <Switch checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="isSingleUserPerIpOrDeviceEnforced"
+              render={({ field }) => (
+                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                  <div className="space-y-0.5">
+                    <FormLabel className="text-base">
+                      Un Registro de Usuario por IP o Dispositivo
+                    </FormLabel>
+                    <FormDescription>
+                      Evita que múltiples usuarios se registren desde la misma dirección IP o
+                      Dispositivo.
+                    </FormDescription>
+                  </div>
+                  <FormControl>
+                    <Switch checked={field.value} onCheckedChange={field.onChange} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="maxActiveSessionsPerUser"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Sesiones Activas Máximas</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormDescription>
+                    Número máximo de sesiones activas permitidas por usuario.
+                  </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />

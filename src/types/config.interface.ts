@@ -10,7 +10,7 @@ export interface AppConfig {
   // Usuario
   isUserSignUpEnabled: boolean;
   maxActiveSessionsPerUser: number | null;
-  isSingleUserPerIpEnforced: boolean;
+  isSingleUserPerIpOrDeviceEnforced: boolean;
   isEmailVerificationRequired: boolean;
   isGlobalTwoFactorAuthEnabled: boolean;
   sessionTimeoutLimitMinutes: number | null;
