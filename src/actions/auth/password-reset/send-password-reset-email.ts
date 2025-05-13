@@ -3,12 +3,11 @@
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 
+import type { SendEmailResponse } from "@/actions/auth/send-email";
+import { sendEmail } from "@/actions/auth/send-email";
 import { TokenType } from "@/app/generated/prisma";
 import { getPasswordResetEmail } from "@/emails";
 import { prisma } from "@/lib";
-
-import type { SendEmailResponse } from "../send-email";
-import { sendEmail } from "../send-email";
 
 // Validación con Zod
 const EmailSchema = z.object({

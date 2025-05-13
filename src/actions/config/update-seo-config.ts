@@ -4,10 +4,9 @@ import { revalidateTag } from "next/cache";
 import path from "path";
 import { z } from "zod";
 
+import { deleteFileIfExists } from "@/actions/config/delete-file-if-exists";
+import { saveFile } from "@/actions/config/save-file";
 import { prisma } from "@/lib";
-
-import { deleteFileIfExists } from "./delete-file-if-exists";
-import { saveFile } from "./save-file";
 
 const appConfigSchema = z.object({
   siteDisplayName: z.string().min(1),

@@ -7,8 +7,7 @@ import { sendEmailVerification } from "@/actions/auth/email-verify/send-email-ve
 import { createUserRegistrationLog } from "@/actions/auth/signup/create-user-register-log";
 import { validateDevice } from "@/actions/auth/signup/validate-device";
 import { getAppConfig } from "@/actions/config/get-app-config";
-import { prisma } from "@/lib";
-import { getClientIp } from "@/lib/get-client-ip";
+import { getClientIp, prisma } from "@/lib";
 
 type CreateUserCredentialsResponse = { ok: true; message?: string } | { ok: false; error: string };
 
