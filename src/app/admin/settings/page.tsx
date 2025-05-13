@@ -32,7 +32,7 @@ export default async function SettingsPage() {
     googleAnalyticsTrackingId,
     isUserSignUpEnabled,
     maxActiveSessionsPerUser,
-    isSingleUserPerIpEnforced,
+    isSingleUserPerIpOrDeviceEnforced,
     isEmailVerificationRequired,
     isGlobalTwoFactorAuthEnabled,
     sessionTimeoutLimitMinutes,
@@ -85,7 +85,7 @@ export default async function SettingsPage() {
           <UserSettings
             isUserSignUpEnabled={isUserSignUpEnabled}
             maxActiveSessionsPerUser={maxActiveSessionsPerUser}
-            isSingleUserPerIpEnforced={isSingleUserPerIpEnforced}
+            isSingleUserPerIpOrDeviceEnforced={isSingleUserPerIpOrDeviceEnforced}
             isEmailVerificationRequired={isEmailVerificationRequired}
             isGlobalTwoFactorAuthEnabled={isGlobalTwoFactorAuthEnabled}
             sessionTimeoutLimitMinutes={sessionTimeoutLimitMinutes}

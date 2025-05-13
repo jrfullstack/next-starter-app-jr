@@ -41,7 +41,7 @@ const userFormSchema = z.object({
     .int("Debe ser un número entero")
     .min(1, "Debe permitir al menos 1 sesión activa")
     .max(10, "No puede permitir más de 10 sesiones activas"),
-  isSingleUserPerIpEnforced: z.boolean({
+  isSingleUserPerIpOrDeviceEnforced: z.boolean({
     required_error: "Debes indicar si se restringe a un solo usuario por IP",
   }),
   isEmailVerificationRequired: z.boolean({
@@ -65,7 +65,7 @@ type UserFormValues = z.infer<typeof userFormSchema>;
 interface UserSettingsProps {
   isUserSignUpEnabled: boolean;
   maxActiveSessionsPerUser: number | null;
-  isSingleUserPerIpEnforced: boolean;
+  isSingleUserPerIpOrDeviceEnforced: boolean;
   isEmailVerificationRequired: boolean;
   isGlobalTwoFactorAuthEnabled: boolean;
   sessionTimeoutLimitMinutes: number | null;
@@ -75,7 +75,7 @@ interface UserSettingsProps {
 export const UserSettings = ({
   isUserSignUpEnabled,
   maxActiveSessionsPerUser,
-  isSingleUserPerIpEnforced,
+  isSingleUserPerIpOrDeviceEnforced,
   isEmailVerificationRequired,
   isGlobalTwoFactorAuthEnabled,
   sessionTimeoutLimitMinutes,
@@ -85,7 +85,7 @@ export const UserSettings = ({
     defaultValues: {
       isUserSignUpEnabled: isUserSignUpEnabled,
       maxActiveSessionsPerUser: maxActiveSessionsPerUser || 3,
-      isSingleUserPerIpEnforced: isSingleUserPerIpEnforced,
+      isSingleUserPerIpOrDeviceEnforced: isSingleUserPerIpOrDeviceEnforced,
       isEmailVerificationRequired: isEmailVerificationRequired,
       isGlobalTwoFactorAuthEnabled: isGlobalTwoFactorAuthEnabled || false,
       sessionTimeoutLimitMinutes: sessionTimeoutLimitMinutes || 30,
@@ -97,7 +97,10 @@ export const UserSettings = ({
       const formData = new FormData();
       formData.append("isUserSignUpEnabled", values.isUserSignUpEnabled.toString());
       formData.append("maxActiveSessionsPerUser", values.maxActiveSessionsPerUser.toString());
-      formData.append("isSingleUserPerIpEnforced", values.isSingleUserPerIpEnforced.toString());
+      formData.append(
+        "isSingleUserPerIpOrDeviceEnforced",
+        values.isSingleUserPerIpOrDeviceEnforced.toString(),
+      );
       formData.append("isEmailVerificationRequired", values.isEmailVerificationRequired.toString());
 
       formData.append(
@@ -184,13 +187,16 @@ export const UserSettings = ({
 
             <FormField
               control={form.control}
-              name="isSingleUserPerIpEnforced"
+              name="isSingleUserPerIpOrDeviceEnforced"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
                   <div className="space-y-0.5">
-                    <FormLabel className="text-base">Un Registro Usuario por IP</FormLabel>
+                    <FormLabel className="text-base">
+                      Un Registro de Usuario por IP o Dispositivo
+                    </FormLabel>
                     <FormDescription>
-                      Evita que múltiples usuarios se registren desde la misma dirección IP.
+                      Evita que múltiples usuarios se registren desde la misma dirección IP o
+                      Dispositivo.
                     </FormDescription>
                   </div>
                   <FormControl>

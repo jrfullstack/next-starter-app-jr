@@ -9,7 +9,7 @@ interface SeedAppConfig {
 
   isUserSignUpEnabled?: Boolean;
   maxActiveSessionsPerUser?: Number;
-  isSingleUserPerIpEnforced?: Boolean;
+  isSingleUserPerIpOrDeviceEnforced?: Boolean;
   isEmailVerificationRequired?: Boolean;
   isGlobalTwoFactorAuthEnabled?: Boolean;
   sessionTimeoutLimitMinutes?: Number;
@@ -30,7 +30,7 @@ export interface SeedUser {
   password: string;
   name?: string;
   role?: Role;
-  profileImageUrl?: string;
+  image?: string;
 }
 
 interface SeedData {
@@ -49,7 +49,7 @@ export const initialData: SeedData = {
 
       isUserSignUpEnabled: true,
       maxActiveSessionsPerUser: 3,
-      isSingleUserPerIpEnforced: false,
+      isSingleUserPerIpOrDeviceEnforced: false,
       isEmailVerificationRequired: true,
       isGlobalTwoFactorAuthEnabled: false,
       sessionTimeoutLimitMinutes: 30,

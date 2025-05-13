@@ -19,12 +19,12 @@ model AppConfig {
   // considerar redes sociales pagina de mantenimiento también la necesita o solo incluir en el footer
 
   // Usuario
-  isUserSignUpEnabled          Boolean @default(true) // Permitir registros
-  maxActiveSessionsPerUser     Int?    @default(3) // Límite de sesiones por usuario
-  isSingleUserPerIpEnforced    Boolean @default(false) // ¿Evitar múltiples usuarios por IP?
-  isEmailVerificationRequired  Boolean @default(false) // ¿Verificación de email requerida?
-  isGlobalTwoFactorAuthEnabled Boolean @default(false) // ¿Está activo el 2FA globalmente?
-  sessionTimeoutLimitMinutes   Int?    @default(30) // Tiempo de expiración de sesión en minutos
+  isUserSignUpEnabled               Boolean @default(true) // Permitir registros
+  maxActiveSessionsPerUser          Int?    @default(3) // Límite de sesiones por usuario
+  isSingleUserPerIpOrDeviceEnforced Boolean @default(false) // ¿Evitar múltiples usuarios por IP?
+  isEmailVerificationRequired       Boolean @default(false) // ¿Verificación de email requerida?
+  isGlobalTwoFactorAuthEnabled      Boolean @default(false) // ¿Está activo el 2FA globalmente?
+  sessionTimeoutLimitMinutes        Int?    @default(30) // Tiempo de expiración de sesión en minutos
 
   // SEO Global
   siteDisplayName      String? // Nombre de la plataforma
@@ -51,9 +51,9 @@ model User {
   id                 String    @id @default(cuid()) // ID único del usuario
   email              String    @unique // Email del usuario
   emailVerified      DateTime? // Fecha en que se verificó el email
-  hashedPassword     String // Hash de la contraseña
+  hashedPassword     String? // Hash de la contraseña
   name               String? // Nombre opcional
-  profileImageUrl    String?   @db.VarChar(255) // Avatar o imagen de perfil
+  image              String?   @db.VarChar(255) // Avatar o imagen de perfil
   isTwoFactorEnabled Boolean   @default(false) // ¿Tiene 2FA activado?
   twoFactorSecretKey String? // Clave secreta para 2FA
   role               Role      @default(USER) // El Rol que hace este usuario
@@ -86,7 +86,7 @@ model UserSession {
   userId           String // Relación con el usuario
   user             User      @relation(fields: [userId], references: [id])
   ipAddress        String? // Dirección IP de la sesión
-  userAgentString  String? // Dispositivo/navegador usado
+  userAgent        String? // Dispositivo/navegador usado
   createdAt        DateTime  @default(now()) // Fecha de creación
   sessionExpiresAt DateTime? // Fecha de expiración de la sesión
 
@@ -113,13 +113,14 @@ model UserVerificationToken {
 
 // Historial de IP/dispositivo al registrarse
 model UserRegistrationLog {
-  id          String   @id @default(cuid()) // ID del log
-  userId      String // Usuario que se registró
-  user        User     @relation(fields: [userId], references: [id])
-  ipAddress   String // IP desde donde se registró
-  countryName String? // País detectado según la IP // o countryCode 
-  deviceId    String? // Identificador del dispositivo
-  createdAt   DateTime @default(now()) // Fecha del registro
+  id        String   @id @default(cuid()) // ID del log
+  userId    String // Usuario que se registró
+  user      User     @relation(fields: [userId], references: [id])
+  ipAddress String // IP desde donde se registró
+  deviceId  String? // Identificador del dispositivo
+  createdAt DateTime @default(now()) // Fecha del registro
+
+  @@index([ipAddress, deviceId]) // Búsqueda rápida por IP
 }
 
 // Intentos de login exitosos o fallidos

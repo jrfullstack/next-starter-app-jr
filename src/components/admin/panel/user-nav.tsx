@@ -38,7 +38,7 @@ export function UserNav() {
               <Button variant="outline" className="relative size-8 rounded-full">
                 <Avatar className="size-8">
                   <AvatarImage
-                    src={session?.user.profileImageUrl || ""}
+                    src={session?.user.image || ""}
                     alt={`avatar de ${session?.user.name}`}
                   />
                   <AvatarFallback className="focus:text-primary hover:text-primary">
