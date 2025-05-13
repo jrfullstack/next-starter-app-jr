@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { FcGoogle } from "react-icons/fc";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Cookies from "js-cookie";
 import { toast } from "sonner";
 import { z } from "zod";
 
-import { createUser } from "@/actions/users/create-user";
+import { createUserCredentials } from "@/actions/auth/signup/create-user.credentials";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -23,7 +24,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib";
+import { getDeviceId } from "@/lib/get-device-id";
 import type { ResolvedAppConfig } from "@/types";
+
+type ErrorCode = "registration_disabled" | "duplicate_device_or_ip" | "registration_failed";
+
+const errorMessages: Record<ErrorCode, string> = {
+  registration_disabled: "El registro está actualmente deshabilitado.",
+  duplicate_device_or_ip: "Ya has creado una cuenta, intenta iniciar sesión.",
+  registration_failed: "No se pudo completar el registro. Intenta más tarde.",
+};
 
 const signUpSchema = z
   .object({
@@ -53,6 +63,14 @@ export const SignUpForm = ({ appConfig, className, ...props }: Readonly<Props>) 
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState("");
 
+  const error = searchParams.get("error");
+
+  useEffect(() => {
+    if (error && error in errorMessages) {
+      toast.error(errorMessages[error as ErrorCode]);
+    }
+  }, [error]);
+
   const form = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -63,43 +81,113 @@ export const SignUpForm = ({ appConfig, className, ...props }: Readonly<Props>) 
     },
   });
 
+  const handleErrorFromString = (error: string) => {
+    switch (error) {
+      case "duplicate_device_or_ip": {
+        toast.error("Ya has creado una cuenta, intenta iniciar sesión.");
+        break;
+      }
+      case "El registro de usuarios está deshabilitado.": {
+        toast.error("El registro está desactivado por el administrador.");
+        break;
+      }
+      default: {
+        toast.error(error);
+      }
+    }
+  };
+
+  const handleErrorFromObject = (error: {
+    fieldErrors?: { email?: string };
+    formError?: string;
+  }) => {
+    const { fieldErrors, formError } = error;
+
+    if (fieldErrors?.email) {
+      toast.error(fieldErrors.email);
+      return;
+    }
+
+    if (formError) {
+      toast.error(formError);
+      return;
+    }
+
+    toast.error("Error durante el registro.");
+  };
+
+  const handleRedirectAfterSignup = async (email: string, password: string) => {
+    const resultSignIn = await signIn("credentials", {
+      email: email.toLowerCase(),
+      password,
+      redirect: false,
+    });
+
+    if (resultSignIn?.error) {
+      toast.error("Hubo un error al iniciar sesión automáticamente.");
+      return;
+    }
+
+    const isSafeUrl = callbackUrl.startsWith("/") && !callbackUrl.startsWith("//");
+    let redirectTo = "/";
+
+    if (appConfig.isEmailVerificationRequired) {
+      redirectTo = `/auth/verify?callbackUrl=${encodeURIComponent(isSafeUrl ? callbackUrl : "/")}`;
+    } else if (isSafeUrl) {
+      redirectTo = callbackUrl;
+    }
+
+    router.push(redirectTo);
+  };
+
   const onSubmit = async (data: SignUpFormData) => {
     setErrorMessage("");
     startTransition(async () => {
       try {
-        const result = await createUser(data);
+        const deviceId = await getDeviceId();
+        const result = await createUserCredentials(data, deviceId);
 
-        if (!result.ok) {
-          throw new Error(result.error || "Error durante el registro");
+        if (!result?.ok) {
+          const error = result.error;
+
+          if (typeof error === "string") {
+            handleErrorFromString(error);
+            return;
+          }
+
+          if (typeof error === "object" && error !== null) {
+            handleErrorFromObject(error);
+            return;
+          }
+
+          toast.error("Error durante el registro.");
+          return;
         }
 
-        toast.success(result.message);
-
-        const resultSignIn = await signIn("credentials", {
-          email: data.email.toLowerCase(),
-          password: data.password,
-          redirect: false,
-        });
-
-        if (resultSignIn?.error) {
-          throw new Error(resultSignIn.error);
-        }
-
-        // Permitimos usar un callback URL si está disponible y es una URL segura.
-        const isSafeUrl = callbackUrl.startsWith("/") && !callbackUrl.startsWith("//");
-        let redirectTo = "/";
-        if (appConfig.isEmailVerificationRequired) {
-          redirectTo = `/auth/verify?callbackUrl=${encodeURIComponent(isSafeUrl ? callbackUrl : "/")}`;
-        } else if (isSafeUrl) {
-          redirectTo = callbackUrl;
-        }
-
-        router.push(redirectTo);
+        toast.success("Registro exitoso");
+        await handleRedirectAfterSignup(data.email, data.password);
       } catch (error) {
         console.error("Error en el registro:", error);
         toast.error("Error durante el registro. Intenta más tarde.");
       }
     });
+  };
+
+  const handleSignup = async () => {
+    try {
+      const deviceId = await getDeviceId();
+      Cookies.set("deviceId", deviceId);
+
+      const isSafeUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//");
+      const safeRedirect = isSafeUrl ? callbackUrl : "/";
+
+      await signIn("google", {
+        redirectTo: safeRedirect,
+      });
+    } catch (error) {
+      toast.error("Error iniciando autenticación.");
+      console.error("Error en handleSignup:", error);
+    }
   };
 
   return (
@@ -116,7 +204,7 @@ export const SignUpForm = ({ appConfig, className, ...props }: Readonly<Props>) 
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => signIn("google", { callbackUrl })}
+                  onClick={handleSignup}
                   disabled={isPending}
                 >
                   <FcGoogle />
