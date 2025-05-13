@@ -1,8 +1,9 @@
 "use server";
 
+import { upsertUserSession } from "@/actions/auth/session/upsert-user-session";
 import { createUserRegistrationLog } from "@/actions/auth/signup/create-user-register-log";
+import { prisma } from "@/lib";
 import { AuthError } from "@/lib/errors/auth-errors";
-import prisma from "@/lib/prisma";
 
 export const registerUserIfNotExistsOauth = async (
   user: {
@@ -12,6 +13,8 @@ export const registerUserIfNotExistsOauth = async (
   },
   deviceId: string,
   ipAddress: string,
+  userAgent: string,
+  maxActiveSessionsPerUser: number,
 ) => {
   if (!user.name || !user.email) {
     throw new AuthError("MISSING_GOOGLE_INFO");
@@ -32,6 +35,14 @@ export const registerUserIfNotExistsOauth = async (
       userId: createdUser.id,
       deviceId,
       ipAddress,
+    });
+
+    await upsertUserSession({
+      userId: createdUser.id,
+      deviceId,
+      ipAddress,
+      userAgent,
+      maxActiveSessions: maxActiveSessionsPerUser ?? 3,
     });
   } catch (error) {
     console.error("Error al crear usuario y registrar log:", error);

@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Cookies from "js-cookie";
+import { toast } from "sonner";
 import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
@@ -20,7 +22,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib";
+import { cn, getDeviceId } from "@/lib";
 
 const signInSchema = z.object({
   email: z.string().email("Correo inválido"),
@@ -57,6 +59,9 @@ export const SigninForm = ({
   const handleCredentialSignIn = (data: SignInFormData) => {
     setErrorMessage("");
 
+    const isSafeUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//");
+    const safeRedirect = isSafeUrl ? callbackUrl : "/";
+
     startTransition(async () => {
       try {
         const res = await signIn("credentials", {
@@ -64,18 +69,35 @@ export const SigninForm = ({
           email: data.email,
           password: data.password,
           // Permitimos usar un callback URL si está disponible.
-          callbackUrl,
+          safeRedirect,
         });
 
         if (res?.error) {
           setErrorMessage("Correo o contraseña inválidos");
         } else {
-          router.push(callbackUrl);
+          router.push(safeRedirect);
         }
       } catch {
         setErrorMessage("Ha ocurrido un error al iniciar sesión. Inténtalo nuevamente.");
       }
     });
+  };
+
+  const handleSignin = async () => {
+    try {
+      const deviceId = await getDeviceId();
+      Cookies.set("deviceId", deviceId);
+
+      const isSafeUrl = callbackUrl?.startsWith("/") && !callbackUrl.startsWith("//");
+      const safeRedirect = isSafeUrl ? callbackUrl : "/";
+
+      await signIn("google", {
+        redirectTo: safeRedirect,
+      });
+    } catch (error) {
+      toast.error("Error iniciando autenticación.");
+      console.error("Error en handleSignup:", error);
+    }
   };
 
   return (
@@ -92,7 +114,7 @@ export const SigninForm = ({
                 <Button
                   variant="outline"
                   className="w-full"
-                  onClick={() => signIn("google", { callbackUrl })}
+                  onClick={handleSignin}
                   disabled={isPending}
                 >
                   <FcGoogle />

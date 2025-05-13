@@ -1,25 +1,17 @@
-import type { NextAuthConfig } from "next-auth";
-
-declare module "next-auth" {
-  interface User {
-    role?: Role;
-    emailVerified?: Date | null;
-    image?: string;
-  }
-}
 import { cookies, headers } from "next/headers";
+import type { NextAuthConfig } from "next-auth";
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 
+import { upsertUserSession } from "@/actions/auth/session/upsert-user-session";
+import { registerUserIfNotExistsOauth } from "@/actions/auth/signup/register-user-if-not-exists-oauth";
+import { validateDevice } from "@/actions/auth/signup/validate-device";
 import { getAppConfig } from "@/actions/config/get-app-config";
+import { Role } from "@/app/generated/prisma";
+import { getClientIp, getUserAgent } from "@/lib";
 import prisma from "@/lib/prisma";
-
-import { registerUserIfNotExistsOauth } from "./actions/auth/signup/register-user-if-not-exists-oauth";
-import { validateDevice } from "./actions/auth/signup/validate-device";
-import { Role } from "./app/generated/prisma";
-import { getClientIp } from "./lib/get-client-ip";
 
 export const authConfig: NextAuthConfig = {
   trustHost: true,
@@ -37,12 +29,14 @@ export const authConfig: NextAuthConfig = {
     async signIn({ user, account }) {
       if (account?.provider !== "google") return true;
 
-      const { isUserSignUpEnabled, isSingleUserPerIpOrDeviceEnforced } = await getAppConfig();
+      const { isUserSignUpEnabled, isSingleUserPerIpOrDeviceEnforced, maxActiveSessionsPerUser } =
+        await getAppConfig();
 
       const cookieStore = await cookies();
       const deviceId = cookieStore.get("deviceId")?.value || "";
       const headersList = await headers();
       const ipAddress = getClientIp(headersList) || "";
+      const userAgent = getUserAgent(headersList) || "";
       const callbackUrl = cookieStore.get("callbackUrl")?.value || "/";
 
       // si esta deshabilitado el registro de usuarios, lanzamos un error
@@ -56,6 +50,19 @@ export const authConfig: NextAuthConfig = {
         user.name = existingUser.name;
         user.email = existingUser.email;
         user.image = existingUser.image || user.image;
+
+        const sessionExpiresAt = new Date(Date.now() + 60 * 24 * 7 * 60 * 1000); // opcional si lo sigues usando
+
+        user.sessionExpiresAt = sessionExpiresAt;
+        user.deviceId = deviceId;
+
+        await upsertUserSession({
+          userId: existingUser.id,
+          deviceId,
+          ipAddress,
+          userAgent,
+          maxActiveSessions: maxActiveSessionsPerUser ?? 3,
+        });
         return true;
       }
 
@@ -69,7 +76,14 @@ export const authConfig: NextAuthConfig = {
         }
 
         // si no existe el usuario, lo creamos
-        await registerUserIfNotExistsOauth(user, deviceId, ipAddress);
+        await registerUserIfNotExistsOauth(
+          user,
+          deviceId,
+          ipAddress,
+          userAgent,
+          maxActiveSessionsPerUser ?? 3,
+        );
+
         return true;
       } catch (error) {
         console.error("Error durante el registro:", error);
@@ -97,6 +111,13 @@ export const authConfig: NextAuthConfig = {
         token.role = dbUser?.role || Role.USER;
         token.image = dbUser?.image;
         token.emailVerified = dbUser?.emailVerified;
+        token.deviceId = user?.deviceId as string;
+
+        // maxActiveSessionsPerUser
+        if (user.sessionExpiresAt) {
+          token.sessionExpiresAt = user.sessionExpiresAt;
+        }
+        token.deviceId = user?.deviceId as string;
       }
       return token;
     },
@@ -109,6 +130,9 @@ export const authConfig: NextAuthConfig = {
         session.user.name = token.name as string;
         session.user.image = token.image as string;
         session.user.emailVerified = token.emailVerified as Date;
+
+        session.sessionExpiresAt = token.sessionExpiresAt as Date;
+        session.user.deviceId = token.deviceId as string;
       }
       return session;
     },

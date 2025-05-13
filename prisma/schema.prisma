@@ -87,11 +87,16 @@ model UserSession {
   user             User      @relation(fields: [userId], references: [id])
   ipAddress        String? // Dirección IP de la sesión
   userAgent        String? // Dispositivo/navegador usado
+  deviceId         String? // Identificador del dispositivo
   createdAt        DateTime  @default(now()) // Fecha de creación
   sessionExpiresAt DateTime? // Fecha de expiración de la sesión
+  updatedAt        DateTime  @updatedAt
+  lastSignInAt     DateTime? // Fecha de último login
 
+  @@unique([userId, deviceId])
   @@index([sessionExpiresAt]) // Índice para consultar sesiones expiradas rápidamente
   @@index([ipAddress]) // Índice para buscar rápidamente sesiones por IP
+  @@index([deviceId])
 }
 
 // Tokens para verificación de email o recuperación
