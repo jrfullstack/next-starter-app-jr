@@ -2,7 +2,8 @@
 import { revalidateTag } from "next/cache";
 import { z } from "zod";
 
-import { encrypt, prisma } from "@/lib";
+import { prisma } from "@/lib";
+import { encrypt } from "@/lib/run-time/crypto-password";
 
 const appConfigSchema = z.object({
   emailHost: z.string().min(1),

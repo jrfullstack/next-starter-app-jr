@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import nodemailer from "nodemailer";
 
 import { getBackendEmailAppConfig } from "@/actions/config/get-backend-email-app-config";
-import { decrypt } from "@/lib";
+import { decrypt } from "@/lib/run-time/crypto-password";
 
 export async function POST(req: Request) {
   try {

@@ -22,7 +22,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { cn, getDeviceId } from "@/lib";
+import { getDeviceId } from "@/lib/run-time/get-device-id";
+import { cn } from "@/lib/utils";
 
 const signInSchema = z.object({
   email: z.string().email("Correo inválido"),

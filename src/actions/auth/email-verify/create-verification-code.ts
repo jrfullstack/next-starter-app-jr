@@ -1,7 +1,8 @@
 "use server";
 import { TokenType } from "@/app/generated/prisma";
 import { PrismaClientKnownRequestError } from "@/app/generated/prisma/runtime/library";
-import { generateVerificationCode, prisma } from "@/lib";
+import { prisma } from "@/lib";
+import { generateVerificationCode } from "@/lib/run-time/generate-tokens-codes";
 
 interface Props {
   userId: string;

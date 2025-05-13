@@ -5,7 +5,7 @@ import nodemailer from "nodemailer";
 // dejarlo en api por que el nodemailer no tiene soporte para el envío de correo en el lado del servidor
 import type { SendEmailOptions } from "@/actions/auth/send-email";
 import { getBackendEmailAppConfig } from "@/actions/config/get-backend-email-app-config";
-import { decrypt } from "@/lib";
+import { decrypt } from "@/lib/run-time/crypto-password";
 
 export async function POST(req: NextRequest) {
   try {

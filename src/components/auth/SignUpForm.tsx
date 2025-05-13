@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib";
-import { getDeviceId } from "@/lib/get-device-id";
+import { getDeviceId } from "@/lib/run-time/get-device-id";
 import type { ResolvedAppConfig } from "@/types";
 
 type ErrorCode = "registration_disabled" | "duplicate_device_or_ip" | "registration_failed";
