@@ -1,16 +1,4 @@
 echo "Running pre-commit checks..."
 
-
-# 1. Ejecutar pruebas de tipos
-echo "Checking type..."
-npm run typecheck || exit 1
-# pnpm typecheck || exit 1
-
-# 2. Verificar que no haya problemas de estilo o errores de código
-echo "Linting code..."
-npm run lint || exit 1
-# pnpm run lint || exit 1
-
-# 3. Verificar que no haya problemas de estilo o errores de código
-echo "prettier code..."
-pnpm run format:check    || exit 1
+echo "Running pre-commit checks on staged files only..."
+npx lint-staged
