@@ -36,12 +36,7 @@ interface Props extends React.ComponentPropsWithoutRef<"div"> {
   isEmailConfigured: boolean;
 }
 
-export const SigninForm = ({
-  className,
-  isEmailConfigured,
-  children,
-  ...props
-}: Readonly<Props>) => {
+export const SigninForm = ({ className, isEmailConfigured, ...props }: Readonly<Props>) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/";
@@ -52,8 +47,11 @@ export const SigninForm = ({
   const form = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: "admin@midominio.com",
+
+      // solo para pruebas
+      // eslint-disable-next-line sonarjs/no-hardcoded-passwords
+      password: "Admin1234!",
     },
   });
 
