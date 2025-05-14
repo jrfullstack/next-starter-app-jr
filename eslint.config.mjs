@@ -197,6 +197,8 @@ const eslintConfig = [
 
       // --- SonarJS Rules ---
       ...sonarjsPlugin.configs.recommended.rules,
+      "sonarjs/no-unused-vars": "off", // desactivado porque ya está activado en typescript
+      "sonarjs/no-dead-store": "off", // desactivado porque ya está activado en typescript
       "sonarjs/no-duplicate-string": "off", // Muestra advertencia sobre cadenas duplicadas
       "sonarjs/no-identical-conditions": "error", // Exige que no haya condiciones idénticas
       "sonarjs/no-collapsible-if": "error", // Evita bloques if que se puedan combinar
